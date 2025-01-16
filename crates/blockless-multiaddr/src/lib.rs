@@ -50,7 +50,7 @@ impl<'a> Indicator<'a> {
 
 impl<'a> MultiAddr<'a> {
     pub fn schema(&self) -> Result<&str, Error> {
-        if self.paths.len() > 0 {
+        if !self.paths.is_empty() {
             std::str::from_utf8(self.paths[0].value()).map_err(|_| Error::InvalidToken)
         } else {
             Err(Error::Partial)

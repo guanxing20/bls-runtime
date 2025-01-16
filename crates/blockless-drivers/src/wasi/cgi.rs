@@ -80,7 +80,6 @@ impl blockless_cgi::BlocklessCgi for WasiCtx {
         buf_len: u32,
     ) -> Result<u32, CgiErrorKind> {
         let mut dest_buf = vec![0; buf_len as _];
-        let buf = buf.clone();
         let rs = cgi_directory_list_read(handle.into(), &mut dest_buf[..]).await?;
         if rs > 0 {
             memory
@@ -98,7 +97,6 @@ impl blockless_cgi::BlocklessCgi for WasiCtx {
         buf_len: u32,
     ) -> Result<u32, CgiErrorKind> {
         let mut dest_buf = vec![0; buf_len as _];
-        let buf = buf.clone();
         let rs = child_stdout_read(handle.into(), &mut dest_buf[..]).await?;
         if rs > 0 {
             memory
@@ -116,7 +114,6 @@ impl blockless_cgi::BlocklessCgi for WasiCtx {
         buf_len: u32,
     ) -> Result<u32, CgiErrorKind> {
         let mut dest_buf = vec![0; buf_len as _];
-        let buf = buf.clone();
         let rs = child_stderr_read(handle.into(), &mut dest_buf[..]).await?;
         if rs > 0 {
             memory

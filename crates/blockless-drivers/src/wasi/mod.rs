@@ -26,8 +26,7 @@ impl types::UserErrorConversion for WasiCtx {
         &mut self,
         e: self::ErrorKind,
     ) -> wiggle::anyhow::Result<types::Errno> {
-        e.try_into()
-            .map_err(|e| wiggle::anyhow::anyhow!(format!("{:?}", e)))
+        Ok(e.into())
     }
 }
 

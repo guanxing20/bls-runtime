@@ -3,17 +3,12 @@ use std::path::Path;
 use anyhow::Result;
 use rusqlite::{Connection, OptionalExtension};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub(crate) enum ExtensionMetaStatus {
+    #[default]
     Normal = 0,
     UPDATE = 1,
     Invalid = -1,
-}
-
-impl Default for ExtensionMetaStatus {
-    fn default() -> Self {
-        ExtensionMetaStatus::Normal
-    }
 }
 
 impl From<i32> for ExtensionMetaStatus {
@@ -21,7 +16,8 @@ impl From<i32> for ExtensionMetaStatus {
         match value {
             0 => ExtensionMetaStatus::Normal,
             1 => ExtensionMetaStatus::UPDATE,
-            -1 | _ => ExtensionMetaStatus::Invalid,
+            -1 => ExtensionMetaStatus::Invalid,
+            _ => ExtensionMetaStatus::Invalid,
         }
     }
 }
@@ -69,7 +65,7 @@ impl DB {
         "#;
         Ok(self
             .connect
-            .query_row(query_sql, &[alias], |row| {
+            .query_row(query_sql, [alias], |row| {
                 let id = row.get(0)?;
                 let alias = row.get(1)?;
                 let md5 = row.get(2)?;
@@ -114,7 +110,7 @@ impl DB {
             .map(|rows| rows.filter_map(|row| row.ok()).collect::<Vec<_>>())?)
     }
 
-    pub(crate) fn save_extensions(&mut self, exts: &Vec<ExtensionMeta>) -> Result<()> {
+    pub(crate) fn save_extensions(&mut self, exts: &[ExtensionMeta]) -> Result<()> {
         for meta in exts.iter() {
             match meta.status {
                 ExtensionMetaStatus::Normal => self.insert_extension_meta(meta),

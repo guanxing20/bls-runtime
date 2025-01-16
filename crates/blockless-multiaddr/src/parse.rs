@@ -57,14 +57,14 @@ pub fn parse(address: &[u8]) -> Result<MultiAddr, Error> {
         }
         token = match token {
             Status::None if *c == b'/' => {
-                if paths.len() == 0 {
+                if paths.is_empty() {
                     return Err(Error::InvalidToken);
                 } else {
                     continue;
                 }
             }
             Status::None => Status::IndicatorBegin(c_off),
-            Status::IndicatorBegin(beign) if *c == b':' && paths.len() == 0 => {
+            Status::IndicatorBegin(beign) if *c == b':' && paths.is_empty() => {
                 //schema check.
                 if address[c_off..].len() < 3 || &address[c_off + 1..c_off + 3] != b"//" {
                     return Err(Error::InvalidToken);

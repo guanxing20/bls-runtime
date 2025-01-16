@@ -94,7 +94,7 @@ pub(crate) async fn list(cfg: &str) -> Result<String, S3ErrorKind> {
             obj["name"] = rs.name.clone().into();
             obj["is_truncated"] = rs.is_truncated.into();
             rs.prefix.as_ref().map(|prefix| {
-                obj["prefix"] = prefix.clone().into();
+                obj["prefix"] = prefix.as_str().into();
             });
             let contents = rs
                 .contents
@@ -105,7 +105,7 @@ pub(crate) async fn list(cfg: &str) -> Result<String, S3ErrorKind> {
                     obj["e_tag"] = c.e_tag.clone().into();
                     obj["storage_class"] = c.storage_class.clone().into();
                     obj["key"] = c.key.clone().into();
-                    obj["size"] = c.size.clone().into();
+                    obj["size"] = c.size.into();
                     obj
                 })
                 .collect::<Vec<_>>();

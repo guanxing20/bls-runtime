@@ -25,6 +25,8 @@ use std::sync::Mutex;
 use tcp_driver::TcpDriver;
 use wasi_common::WasiFile;
 
+type OpenFuture = Pin<Box<dyn Future<Output = Result<Box<dyn WasiFile>, ErrorKind>> + Send>>;
+
 pub trait Driver {
     fn name(&self) -> &str;
 
@@ -32,7 +34,7 @@ pub trait Driver {
         &self,
         uri: &str,
         opts: &str,
-    ) -> Pin<Box<dyn Future<Output = Result<Box<dyn WasiFile>, ErrorKind>> + Send>>;
+    ) -> OpenFuture;
 }
 
 lazy_static! {

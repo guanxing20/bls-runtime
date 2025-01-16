@@ -10,9 +10,9 @@ pub struct BlocklessConfig {
 }
 
 enum BlocklessConfigField {
-    WitxField(Paths),
-    LinkMethodField(syn::LitStr),
-    TargetField(syn::Path),
+    Witx(Paths),
+    LinkMethod(syn::LitStr),
+    Target(syn::Path),
 }
 
 mod kw {
@@ -29,9 +29,9 @@ impl BlocklessConfig {
         let mut link_method = None;
         for f in fields {
             match f {
-                BlocklessConfigField::TargetField(t) => target = Some(t),
-                BlocklessConfigField::LinkMethodField(m) => link_method = Some(m),
-                BlocklessConfigField::WitxField(paths) => {
+                BlocklessConfigField::Target(t) => target = Some(t),
+                BlocklessConfigField::LinkMethod(m) => link_method = Some(m),
+                BlocklessConfigField::Witx(paths) => {
                     witx_confg = Some(WitxConf::Paths(paths));
                 }
             }
@@ -65,15 +65,15 @@ impl Parse for BlocklessConfigField {
         if lookahead.peek(kw::witx) {
             input.parse::<kw::witx>()?;
             input.parse::<Token![:]>()?;
-            Ok(BlocklessConfigField::WitxField(input.parse()?))
+            Ok(BlocklessConfigField::Witx(input.parse()?))
         } else if lookahead.peek(kw::target) {
             input.parse::<kw::target>()?;
             input.parse::<Token![:]>()?;
-            Ok(BlocklessConfigField::TargetField(input.parse()?))
+            Ok(BlocklessConfigField::Target(input.parse()?))
         } else if lookahead.peek(kw::link_method) {
             input.parse::<kw::link_method>()?;
             input.parse::<Token![:]>()?;
-            Ok(BlocklessConfigField::LinkMethodField(input.parse()?))
+            Ok(BlocklessConfigField::LinkMethod(input.parse()?))
         } else {
             Err(lookahead.error())
         }

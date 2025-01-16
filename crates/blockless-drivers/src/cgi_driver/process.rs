@@ -73,8 +73,7 @@ impl CgiProcess {
             json::JsonValue::Array(ref args) => args
                 .iter()
                 .map(|arg| arg.as_str().map(String::from))
-                .filter(Option::is_some)
-                .map(Option::unwrap)
+                .flatten()
                 .collect(),
             _ => Vec::new(),
         };
@@ -87,8 +86,7 @@ impl CgiProcess {
                         .map(String::from)
                         .zip(arg["env_val"].as_str().map(String::from))
                 })
-                .filter(Option::is_some)
-                .map(Option::unwrap)
+                .flatten()
                 .collect(),
             _ => Vec::new(),
         };
@@ -233,7 +231,7 @@ async fn file_md5(path: impl AsRef<Path>) -> anyhow::Result<md5::Digest> {
 /// get file meta from execute output with the parameter "--ext_verify".
 async fn get_file_meta(file_path: &str) -> anyhow::Result<Option<ExtensionMeta>> {
     let mut command = Command::new(file_path);
-    command.args(&["--ext_verify"]);
+    command.args(["--ext_verify"]);
     let child = command.output().await?;
     let val = std::str::from_utf8(&child.stdout[..])?;
     //parse output json like {"alias":"xxx", "md5":"xxxx", "desciption":"xxxxx", "is_cgi": true}
@@ -338,10 +336,7 @@ async fn cgi_directory_list_extensions(path: &str) -> Result<Vec<ExtensionMeta>,
     };
     let metas = metas
         .into_iter()
-        .filter(|meta| match meta.status {
-            ExtensionMetaStatus::Invalid => false,
-            _ => true,
-        })
+        .filter(|meta| !matches!(meta.status, ExtensionMetaStatus::Invalid))
         .collect::<Vec<_>>();
     Ok(metas)
 }
