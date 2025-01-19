@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 
+use wasi_common::PermissionsConfig;
 use wasmtime::StoreLimits;
 use wasmtime_wasi::preview1::WasiP1Ctx;
 use wasmtime_wasi_threads::WasiThreadsCtx;
@@ -39,6 +40,12 @@ impl BlocklessContext {
             .expect("wasmtime_wasi was not compatiable threads")
             .get_mut()
             .unwrap()
+    }
+
+    pub(crate) fn set_permisions(&mut self, config: &PermissionsConfig) {
+        self.preview1_ctx
+            .as_mut()
+            .map(|ctx| ctx.set_permissions_config(config).unwrap());
     }
 }
 

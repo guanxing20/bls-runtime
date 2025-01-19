@@ -7,7 +7,9 @@ mod plog;
 mod v86;
 mod v86config;
 use blockless::{blockless_run, LoggerLevel, Stdin};
+#[allow(unused_imports)]
 use clap::Parser;
+use clap::{CommandFactory, FromArgMatches};
 use cli_clap::{CliCommandOpts, RuntimeType};
 use config::load_cli_config_extract_from_car;
 #[allow(unused_imports)]
@@ -17,6 +19,7 @@ use error::CliExitCode;
 use log::{error, info, LevelFilter};
 use std::fs;
 use std::path::Path;
+use std::process::exit;
 use std::{io::Read, path::PathBuf, time::Duration};
 use v86::V86Lib;
 use v86config::load_v86conf_extract_from_car;
@@ -163,7 +166,7 @@ async fn wasm_runtime(mut cfg: CliConfig, cli_command_opts: CliCommandOpts) -> C
     cli_command_opts.into_config(&mut cfg).unwrap();
     if cfg.0.is_fixed_stdin() {
         if let Some(stdin_buffer) = non_blocking_read(std::io::stdin()).await {
-            cfg.0.stdio.stdin = Stdin::Fixed(stdin_buffer);
+            cfg.0.stdio.stdin(Stdin::Fixed(stdin_buffer));
         }
     }
 
@@ -212,9 +215,34 @@ async fn non_blocking_read<R: Read + Send + 'static>(mut reader: R) -> Option<St
     rx.recv_timeout(std::time::Duration::from_millis(1000)).ok()
 }
 
+fn parse_args() -> CliCommandOpts {
+    let mut cli_command = CliCommandOpts::command();
+    let clap_match = cli_command.get_matches_mut();
+    let cli_command_opts = CliCommandOpts::from_arg_matches(&clap_match);
+    macro_rules! set_perm_grant {
+        ($id: literal, $perm: expr) => {
+            if $perm.is_none() && clap_match.contains_id($id) {
+                $perm = Some(blockless::PermissionGrant::All);
+            }
+        };
+    }
+    match cli_command_opts {
+        Ok(mut o) => {
+            set_perm_grant!("allow-read", o.permission_flags.allow_read);
+            set_perm_grant!("allow-write", o.permission_flags.allow_write);
+            set_perm_grant!("deny-read", o.permission_flags.deny_read);
+            set_perm_grant!("deny-write", o.permission_flags.deny_write);
+            o
+        }
+        Err(_) => {
+            exit(255);
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() -> CliExitCode {
-    let cli_command_opts = CliCommandOpts::parse();
+    let cli_command_opts = parse_args();
     set_root_path_env_var(&cli_command_opts);
     let path = cli_command_opts.input_ref();
 

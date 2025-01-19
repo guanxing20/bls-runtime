@@ -1,5 +1,6 @@
 use crate::Permission;
 use anyhow::{bail, Ok};
+use bls_permissions::PermissionsOptions;
 use std::{
     collections::HashMap,
     net::SocketAddr,
@@ -7,6 +8,8 @@ use std::{
     str::FromStr,
 };
 use wasmtime::OptLevel;
+
+use super::set_is_inherit_stdin;
 
 const ENTRY: &str = "_start";
 
@@ -276,6 +279,18 @@ impl OptionParser<String> for wasmtime::RegallocAlgorithm {
     }
 }
 
+impl OptionParser<&str> for PermissionGrant {
+    fn parse(val: &&str) -> anyhow::Result<Self> {
+        match *val {
+            "" => Ok(PermissionGrant::All),
+            val @ _ => {
+                let val = val.split(',').map(String::from).collect::<Vec<_>>();
+                Ok(PermissionGrant::List(val))
+            }
+        }
+    }
+}
+
 bls_options! {
     #[derive(PartialEq, Clone)]
     pub struct OptimizeOpts {
@@ -431,10 +446,32 @@ pub struct Stdio {
     pub stderr: Stderr,
 }
 
+impl Stdio {
+    #[inline(always)]
+    pub fn stdin(&mut self, stdin: Stdin) {
+        let is_inherit_stdin = match stdin {
+            Stdin::Fixed(_) => false,
+            _ => true,
+        };
+        set_is_inherit_stdin(is_inherit_stdin);
+        self.stdin = stdin;
+    }
+
+    #[inline(always)]
+    pub fn stdout(&mut self, stdout: Stdout) {
+        self.stdout = stdout;
+    }
+
+    #[inline(always)]
+    pub fn stderr(&mut self, stderr: Stderr) {
+        self.stderr = stderr;
+    }
+}
+
 impl Default for Stdio {
     fn default() -> Self {
         Stdio {
-            stdin: Stdin::Fixed(String::new()),
+            stdin: Stdin::Inherit,
             stdout: Stdout::Inherit,
             stderr: Stderr::Inherit,
         }
@@ -445,6 +482,66 @@ impl Default for Stdio {
 pub struct BlsNnGraph {
     pub format: String,
     pub dir: String,
+}
+
+#[derive(Clone, Debug)]
+pub enum PermissionGrant {
+    All,
+    List(Vec<String>),
+}
+
+impl Default for PermissionGrant {
+    fn default() -> Self {
+        PermissionGrant::All
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct PermissionsConfig {
+    pub allow_read: Option<PermissionGrant>,
+    pub allow_write: Option<PermissionGrant>,
+    pub deny_read: Option<PermissionGrant>,
+    pub deny_write: Option<PermissionGrant>,
+    pub allow_all: bool,
+}
+
+impl Into<PermissionsOptions> for &PermissionsConfig {
+    fn into(self) -> PermissionsOptions {
+        let mut options = PermissionsOptions::default();
+        macro_rules! set_perm {
+            ($allow_f:expr, $allow_t:expr) => {
+                if let Some(allow_read) = $allow_f {
+                    match allow_read {
+                        PermissionGrant::All => {
+                            $allow_t = None;
+                        }
+                        PermissionGrant::List(allow) => {
+                            $allow_t = Some(allow.clone());
+                        }
+                    }
+                }
+            };
+        }
+        set_perm!(&self.allow_read, options.allow_read);
+        set_perm!(&self.allow_write, options.allow_write);
+        set_perm!(&self.deny_read, options.deny_read);
+        set_perm!(&self.deny_write, options.deny_write);
+        options.prompt = true;
+        options.allow_all = self.allow_all;
+        options
+    }
+}
+
+impl Default for PermissionsConfig {
+    fn default() -> Self {
+        PermissionsConfig {
+            allow_read: None,
+            allow_write: None,
+            deny_read: None,
+            deny_write: None,
+            allow_all: false,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -466,7 +563,6 @@ pub struct BlocklessConfig {
     pub unknown_imports_trap: bool,
     pub store_limited: StoreLimited,
     pub envs: Vec<(String, String)>,
-    pub tcp_listens: Vec<(SocketAddr, Option<u32>)>,
     pub permisions: Vec<Permission>,
     pub dirs: Vec<(String, String)>,
     pub fs_root_path: Option<String>,
@@ -479,7 +575,9 @@ pub struct BlocklessConfig {
     pub runtime_logger_level: LoggerLevel,
     pub cli_exit_with_code: bool,
     pub network_error_code: bool,
+    pub tcp_listens: Vec<(SocketAddr, Option<u32>)>,
     pub group_permisions: HashMap<String, Vec<Permission>>,
+    pub permissions_config: PermissionsConfig,
 }
 
 impl BlocklessConfig {
@@ -518,6 +616,7 @@ impl BlocklessConfig {
             opts: Default::default(),
             runtime_logger_level: LoggerLevel::WARN,
             version: BlocklessConfigVersion::Version0,
+            permissions_config: Default::default(),
         }
     }
 

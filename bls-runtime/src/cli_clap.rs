@@ -1,8 +1,8 @@
 #![allow(unused)]
 use anyhow::{bail, Result};
 use blockless::{
-    BlocklessConfig, BlocklessModule, BlsNnGraph, BlsOptions, ModuleType, OptimizeOpts, Permission,
-    Stderr, Stdin, Stdout,
+    BlocklessConfig, BlocklessModule, BlsNnGraph, BlsOptions, ModuleType, OptimizeOpts,
+    OptionParser, Permission, PermissionGrant, PermissionsConfig, Stderr, Stdin, Stdout,
 };
 use clap::{
     builder::{TypedValueParser, ValueParser},
@@ -66,7 +66,7 @@ const V86_HELP: &str =
     "V86 model flag when the v86 flag the car file must be v86 configure and image.";
 
 const THREAD_SUPPORT_HELP: &str =
-    "Thread support flag. when enabled, the runtime will support multi-threading.";
+    "Enables multi-threading in the runtime. When set, the runtime can spawn threads, allowing concurrent task execution for improved performance and scalability.";
 
 const TCP_LISTEN_HELP: &str = "Grant access to the given TCP listen socket. ";
 
@@ -85,6 +85,18 @@ const NN_HELP: &str = "Enable support for WASI neural network imports .";
 const NN_GRAPH_HELP: &str =
     "Pre-load machine learning graphs (i.e., models) for use by wasi-nn.  \
 Each use of the flag will preload a ML model from the host directory using the given model encoding";
+
+const ALLOW_READ_HELP: &str = "Allow the app to read permissions.";
+
+const ALLOW_READ_ALL_HELP: &str = "Allow the app to all read permissions.";
+
+const ALLOW_WRITE_HELP: &str = "Allow the app to write permissions.";
+
+const DENY_READ_HELP: &str = "Deny the app to read permissions.";
+
+const DENY_WRITE_HELP: &str = "Deny the app to write permissions.";
+
+const ALLOW_WRITE_ALL_HELP: &str = "Allow the app to all write permissions.";
 
 fn parse_envs(envs: &str) -> Result<(String, String)> {
     let parts: Vec<_> = envs.splitn(2, "=").collect();
@@ -115,7 +127,7 @@ fn parse_opts(opt: &str) -> Result<OptimizeOpts> {
                 max = max.max(d.opt_name.len() + d.opt_docs.len());
             }
             for d in options {
-                print!("{}", d.opt_name);
+                print!("   -O     {}", d.opt_name);
                 print!(" --");
                 for line in d.opt_docs.lines().map(|s| s.trim()) {
                     if line.is_empty() {
@@ -147,6 +159,10 @@ fn parse_permission(permsion: &str) -> Result<Permission> {
         schema: url.scheme().into(),
         url: permsion.into(),
     })
+}
+
+fn parser_allow(allow: &str) -> Result<PermissionGrant> {
+    PermissionGrant::parse(&allow)
 }
 
 fn parse_module(module: &str) -> Result<BlocklessModule> {
@@ -211,98 +227,176 @@ pub enum RuntimeType {
     Wasm,
 }
 
+#[derive(Parser, Debug)]
+pub struct PermissionFlags {
+    #[clap(long = "allow-read", id="allow-read", num_args=(0..), action=clap::ArgAction::Append, value_name = "[PATH[,]]", help = ALLOW_READ_HELP, value_parser = parser_allow)]
+    pub allow_read: Option<PermissionGrant>,
+
+    #[clap(long = "allow-write", id="allow-write", num_args=(0..) , value_name = "PATH[,]", help = ALLOW_WRITE_HELP, value_parser = parser_allow)]
+    pub allow_write: Option<PermissionGrant>,
+
+    #[clap(long = "deny-read", id="deny-read", num_args=(0..) , value_name = "PATH[,]", help = DENY_READ_HELP, value_parser = parser_allow)]
+    pub deny_read: Option<PermissionGrant>,
+
+    #[clap(long = "deny-write", id="deny-write", num_args=(0..) , value_name = "PATH[,]", help = DENY_WRITE_HELP, value_parser = parser_allow)]
+    pub deny_write: Option<PermissionGrant>,
+
+    #[clap(long = "allow-all", id = "allow-all", help = "Allow all permissions.")]
+    pub allow_all: bool,
+}
+
+impl Into<PermissionsConfig> for PermissionFlags {
+    fn into(self) -> PermissionsConfig {
+        let mut permissions = PermissionsConfig {
+            allow_read: self.allow_read,
+            deny_read: self.deny_read,
+            allow_write: self.allow_write,
+            deny_write: self.deny_write,
+            allow_all: self.allow_all,
+        };
+        permissions
+    }
+}
+
+#[derive(Parser, Debug)]
+pub struct StdioFlags {
+    #[clap(long = "stdout", value_name = "STDOUT", help = STDOUT_HELP, value_parser = parse_stdout)]
+    pub stdout: Option<Stdout>,
+
+    #[clap(long = "stdin", value_name = "STDIN", help = STDIN_HELP, value_parser = parse_stdin)]
+    pub stdin: Option<Stdin>,
+
+    #[clap(long = "stderr", value_name = "STDERR", help = STDERR_HELP, value_parser = parse_stderr)]
+    pub stderr: Option<Stderr>,
+}
+
 /// The latest version from Cargo.toml
 pub(crate) const SHORT_VERSION: &str = concat!("v", env!("CARGO_PKG_VERSION"));
 
+pub fn get_styles() -> clap::builder::Styles {
+    clap::builder::Styles::styled()
+        .usage(
+            anstyle::Style::new()
+                .bold()
+                .underline()
+                .fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Yellow))),
+        )
+        .header(
+            anstyle::Style::new()
+                .bold()
+                .underline()
+                .fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Yellow))),
+        )
+        .literal(
+            anstyle::Style::new().fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Green))),
+        )
+        .invalid(
+            anstyle::Style::new()
+                .bold()
+                .fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Red))),
+        )
+        .error(
+            anstyle::Style::new()
+                .bold()
+                .fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Red))),
+        )
+        .valid(
+            anstyle::Style::new()
+                .bold()
+                .underline()
+                .fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Green))),
+        )
+        .placeholder(
+            anstyle::Style::new().fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::White))),
+        )
+}
+
 #[derive(Parser, Debug)]
-#[command(author, version = SHORT_VERSION, long_version = SHORT_VERSION, about = "Blockless WebAssembly Runtime", long_about = None)]
+#[command(author, version = SHORT_VERSION, styles=get_styles(), arg_required_else_help = true, long_version = SHORT_VERSION, about = "Blockless WebAssembly Runtime")]
 pub(crate) struct CliCommandOpts {
     #[clap(long = "v86", value_name = "V86", required = false, help = V86_HELP )]
-    v86: bool,
+    pub v86: bool,
 
     #[clap(value_name = "INPUT", required = true, help = INPUT_HELP )]
-    input: String,
+    pub input: String,
 
     #[clap(long = "debug-info", value_name = "DEBUG-INFO", help = DEBUG_INFO_HELP)]
-    debug_info: bool,
+    pub debug_info: bool,
 
     #[clap(long = "feature-thread", value_name = "SUPPORT-THREAD", help = THREAD_SUPPORT_HELP)]
-    feature_thread: bool,
+    pub feature_thread: bool,
 
     #[clap(long = "fs-root-path", value_name = "FS-ROOT-PATH", help = FS_ROOT_PATH_HELP)]
-    fs_root_path: Option<String>,
+    pub fs_root_path: Option<String>,
 
     /// Grant access of a host directory to a guest.
     /// If specified as just `HOST_DIR` then the same directory name on the
     /// host is made available within the guest.
     #[arg(long = "dir", value_name = "HOST_DIR[::GUEST_DIR]", help = MAP_DIR_HELP,value_parser = parse_dirs)]
-    dirs: Vec<(String, String)>,
+    pub dirs: Vec<(String, String)>,
 
     #[clap(long = "drivers-root-path", value_name = "DRIVERS-ROOT-PATH", help = DRIVERS_ROOT_PATH_HELP)]
-    drivers_root_path: Option<String>,
+    pub drivers_root_path: Option<String>,
 
     #[clap(long = "runtime-logger", value_name = "RUNTIME-LOGGER", help = RUNTIME_LOGGER_HELP)]
-    runtime_logger: Option<String>,
+    pub runtime_logger: Option<String>,
 
     #[clap(long = "limited-memory", value_name = "LIMITED-MEMORY", help = LIMITED_MEMORY_HELP)]
-    limited_memory: Option<u64>,
+    pub limited_memory: Option<u64>,
 
     #[clap(long = "run-time", value_name = "RUN-TIME", help = RUN_TIME_HELP)]
-    run_time: Option<u64>,
+    pub run_time: Option<u64>,
 
     #[clap(long = "entry", value_name = "ENTERY", help = ENTRY_HELP)]
-    entry: Option<String>,
+    pub entry: Option<String>,
 
-    #[clap(long = "stdout", value_name = "STDOUT", help = STDOUT_HELP, value_parser = parse_stdout)]
-    stdout: Option<Stdout>,
-
-    #[clap(long = "stdin", value_name = "STDIN", help = STDIN_HELP, value_parser = parse_stdin)]
-    stdin: Option<Stdin>,
-
-    #[clap(long = "stderr", value_name = "STDERR", help = STDERR_HELP, value_parser = parse_stderr)]
-    stderr: Option<Stderr>,
+    #[clap(flatten)]
+    pub stdio: StdioFlags,
 
     #[clap(long = "limited-fuel", value_name = "LIMITED-FUEL", help = LIMITED_FUEL_HELP)]
-    limited_fuel: Option<u64>,
+    pub limited_fuel: Option<u64>,
 
     #[clap(long = "env", value_name = "ENV=VAL", help = ENVS_HELP, number_of_values = 1, value_parser = parse_envs)]
-    envs: Vec<(String, String)>,
+    pub envs: Vec<(String, String)>,
 
     #[clap(long = "env-file", value_name = "ENV_FILE", help = ENV_FILE_HELP)]
-    env_file: Option<PathBuf>,
+    pub env_file: Option<PathBuf>,
 
     #[clap(long = "opt", short = 'O', value_name = "OPT=VAL,", help = OPTS_HELP,  value_parser = parse_opts)]
-    opts: Option<OptimizeOpts>,
+    pub opts: Option<OptimizeOpts>,
 
     #[clap(long = "permission", value_name = "PERMISSION", help = PERMISSION_HELP, value_parser = parse_permission)]
-    permissions: Vec<Permission>,
+    pub permissions: Vec<Permission>,
 
     #[clap(long = "module", value_name = "MODULE-NAME=MODULE-PATH", help = MODULES_HELP, value_parser = parse_module)]
-    modules: Vec<BlocklessModule>,
+    pub modules: Vec<BlocklessModule>,
 
     #[clap(long = "tcplisten", value_name = "TCPLISTEN[::LISTENFD]", help = TCP_LISTEN_HELP, value_parser = parse_listen)]
-    tcp_listens: Vec<(SocketAddr, Option<u32>)>,
+    pub tcp_listens: Vec<(SocketAddr, Option<u32>)>,
 
     #[clap(value_name = "ARGS", help = APP_ARGS_HELP)]
-    args: Vec<String>,
+    pub args: Vec<String>,
 
     #[clap(long = "unknown_imports_trap", value_name = "UNKNOWN_IMPORTS_TRAP", help = UNKNOW_IMPORTS_TRAP_HELP)]
-    unknown_imports_trap: bool,
+    pub unknown_imports_trap: bool,
 
     #[clap(long = "cli_exit_with_code", value_name = "CLI_EXIT_WITH_CODE", help = CLI_EXIT_WITH_CODE_HELP)]
-    cli_exit_with_code: bool,
+    pub cli_exit_with_code: bool,
 
     #[clap(long = "network_error_code", value_name = "NETWORK_ERROR_CODE", help = NETWORK_ERROR_CODE_HELP)]
-    network_error_code: bool,
+    pub network_error_code: bool,
 
     #[clap(long = "max_memory_size", value_name = "MAX_MEMORY_SIZE", help = MAX_MEMORY_SIZE_HELP)]
-    max_memory_size: Option<u64>,
+    pub max_memory_size: Option<u64>,
+
+    #[clap(flatten)]
+    pub permission_flags: PermissionFlags,
 
     #[clap(long = "nn", value_name = "NN", help = NN_HELP)]
-    nn: bool,
+    pub nn: bool,
 
     #[clap(long = "nn-graph", value_name = "NN_GRAPH", value_parser = parse_nn_graph, help = NN_GRAPH_HELP)]
-    nn_graph: Vec<BlsNnGraph>,
+    pub nn_graph: Vec<BlsNnGraph>,
 }
 
 impl CliCommandOpts {
@@ -338,16 +432,17 @@ impl CliCommandOpts {
         conf.0.set_map_dirs(self.dirs);
         conf.0.set_feature_thread(self.feature_thread);
         conf.0.limited_memory(self.max_memory_size);
+        conf.0.permissions_config = self.permission_flags.into();
 
         // Handle IO settings
-        if let Some(stderr) = self.stderr {
-            conf.0.stdio.stderr = stderr;
+        if let Some(stderr) = self.stdio.stderr {
+            conf.0.stdio.stderr(stderr);
         }
-        if let Some(stdout) = self.stdout {
-            conf.0.stdio.stdout = stdout;
+        if let Some(stdout) = self.stdio.stdout {
+            conf.0.stdio.stdout(stdout);
         }
-        if let Some(stdin) = self.stdin {
-            conf.0.stdio.stdin = stdin;
+        if let Some(stdin) = self.stdio.stdin {
+            conf.0.stdio.stdin(stdin);
         }
         if self.permissions.len() > 0 {
             conf.0.set_permisions(self.permissions);
