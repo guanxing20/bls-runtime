@@ -254,7 +254,7 @@ impl BlsRuntimePermissionsContainer {
     }
 
     #[inline(always)]
-    pub fn check_net_url(&mut self, url: &Url, api_name: &str) -> Result<(), AnyError> {
+    pub fn check_net_url(&self, url: &Url, api_name: &str) -> Result<(), AnyError> {
         self.inner.check_net_url(url, api_name)
     }
 
