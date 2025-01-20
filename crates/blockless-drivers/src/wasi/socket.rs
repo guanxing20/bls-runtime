@@ -23,8 +23,7 @@ impl types::UserErrorConversion for WasiCtx {
         &mut self,
         e: self::BlocklessSocketErrorKind,
     ) -> wiggle::anyhow::Result<types::SocketError> {
-        e.try_into()
-            .map_err(|e| wiggle::anyhow::anyhow!(format!("{:?}", e)))
+        Ok(e.into())
     }
 }
 
@@ -86,10 +85,7 @@ impl blockless_socket::BlocklessSocket for WasiCtx {
             .map_err(|_| BlocklessSocketErrorKind::ParameterError)?
             .unwrap();
         let mode = FileAccessMode::READ | FileAccessMode::WRITE;
-        match tcp_bind(&addr)
-            .await
-            .map(|f| Arc::new(FileEntry::new(f, mode)))
-        {
+        match tcp_bind(&addr).await.map(|f| Arc::new(FileEntry::new(f, mode))) {
             Ok(f) => {
                 let fd_num = self.table().push(f).unwrap();
                 let fd = types::SocketHandle::from(fd_num);
@@ -109,10 +105,7 @@ impl blockless_socket::BlocklessSocket for WasiCtx {
             .map_err(|_| BlocklessSocketErrorKind::ParameterError)?
             .unwrap();
         let mode = FileAccessMode::READ | FileAccessMode::WRITE;
-        match tcp_connect(&addr)
-            .await
-            .map(|f| Arc::new(FileEntry::new(f, mode)))
-        {
+        match tcp_connect(&addr).await.map(|f| Arc::new(FileEntry::new(f, mode))) {
             Ok(f) => {
                 let fd_num = self.table().push(f).unwrap();
                 let fd = types::SocketHandle::from(fd_num);

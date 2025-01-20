@@ -81,7 +81,7 @@ pub async fn close(handle: u32) -> Result<(), IpfsErrorKind> {
 
 pub async fn write_body(handle: u32, buf: &[u8]) -> Result<u32, IpfsErrorKind> {
     let ctx = get_ctx().unwrap();
-    if buf.len() == 0 {
+    if buf.is_empty() {
         return Err(IpfsErrorKind::InvalidParameter);
     }
     let size = match ctx.get_mut(&handle) {
@@ -93,7 +93,7 @@ pub async fn write_body(handle: u32, buf: &[u8]) -> Result<u32, IpfsErrorKind> {
 
 pub async fn read_body(handle: u32, buf: &mut [u8]) -> Result<u32, IpfsErrorKind> {
     let ctx = get_ctx().unwrap();
-    if buf.len() == 0 {
+    if buf.is_empty() {
         return Err(IpfsErrorKind::InvalidParameter);
     }
     match ctx.get_mut(&handle) {

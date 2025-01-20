@@ -11,6 +11,7 @@ edition = "2021"
 default = ["builtin_http"]
 builtin_http = []
 wiggle_metadata = ["wiggle/wiggle_metadata"]
+runtime = []
 
 [dependencies]
 blockless-drivers-macro = {path = "macro"}

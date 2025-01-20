@@ -15,8 +15,7 @@ impl types::UserErrorConversion for WasiCtx {
         &mut self,
         e: self::BlocklessMemoryErrorKind,
     ) -> wiggle::anyhow::Result<types::BlocklessMemoryError> {
-        e.try_into()
-            .map_err(|e| wiggle::anyhow::anyhow!(format!("{:?}", e)))
+        Ok(e.into())
     }
 }
 
@@ -78,10 +77,9 @@ impl blockless_memory::BlocklessMemory for WasiCtx {
             owned_string.push_str(&format!("\"{}\": \"{}\",", s, env_var));
         }
         owned_string.pop();
-        owned_string.push_str(&"}");
-
+        owned_string.push_str("}");
         let mut dest_buf = vec![0; buf_len as _];
-        let rs = memory_driver::read(&mut dest_buf, owned_string.to_string()).await?;
+        let rs = memory_driver::read(&mut dest_buf, owned_string).await?;
         if rs > 0 {
             memory
                 .copy_from_slice(&dest_buf[0..rs as _], buf.as_array(rs))

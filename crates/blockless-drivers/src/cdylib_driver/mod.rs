@@ -69,11 +69,11 @@ impl Driver for CdylibDriver {
         let api = self.api.clone();
         let uri: String = uri.into();
         let opts: String = opts.into();
-        return Box::pin(async move {
+        Box::pin(async move {
             let addr = match multiaddr::parse(uri.as_bytes()) {
                 Err(e) => {
                     error!("error parse:{:?}", e);
-                    return Err(ErrorKind::DriverBadParams);
+                    Err(ErrorKind::DriverBadParams)?
                 }
                 Ok(addr) => addr,
             };
@@ -83,11 +83,11 @@ impl Driver for CdylibDriver {
             let mut fd = 0;
             let rs = api.blockless_open(&addr, &opts, &mut fd);
             if rs != 0 {
-                return Err(rs.into());
+                Err(ErrorKind::from(rs))?
             }
             let file: DriverWasiFile = DriverWasiFile::new(api, fd)?;
             let file: Box<dyn WasiFile> = Box::new(file);
             Ok(file)
-        });
+        })
     }
 }

@@ -93,7 +93,7 @@ pub async fn bucket_put_object(cfg: &str, buf: &[u8]) -> Result<(), S3ErrorKind>
 
 pub async fn read(handle: u32, buf: &mut [u8]) -> Result<u32, S3ErrorKind> {
     let ctx = get_ctx().unwrap();
-    if buf.len() == 0 {
+    if buf.is_empty() {
         return Err(S3ErrorKind::InvalidParameter);
     }
     match ctx.get_mut(&handle) {

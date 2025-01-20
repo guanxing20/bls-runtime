@@ -16,8 +16,7 @@ impl types::UserErrorConversion for WasiCtx {
         &mut self,
         e: self::HttpErrorKind,
     ) -> wiggle::anyhow::Result<types::HttpError> {
-        e.try_into()
-            .map_err(|e| wiggle::anyhow::anyhow!(format!("{:?}", e)))
+        Ok(e.into())
     }
 }
 
@@ -147,7 +146,7 @@ impl blockless_http::BlocklessHttp for WasiCtx {
             })?
             .unwrap();
         let mut dest_buf = vec![0; buf_len as _];
-        let buf = buf.clone();
+        let buf = buf;
         let rs = http_driver::http_read_head(handle.into(), head, &mut dest_buf[..]).await?;
         memory
             .copy_from_slice(&dest_buf[0..rs as _], buf.as_array(rs))
@@ -163,7 +162,7 @@ impl blockless_http::BlocklessHttp for WasiCtx {
         buf_len: u32,
     ) -> Result<u32, HttpErrorKind> {
         let mut dest_buf = vec![0; buf_len as _];
-        let buf = buf.clone();
+        let buf = buf;
         let rs = http_driver::http_read_body(handle.into(), &mut dest_buf[..]).await?;
         if rs > 0 {
             memory

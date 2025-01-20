@@ -16,8 +16,7 @@ impl types::UserErrorConversion for WasiCtx {
         &mut self,
         e: self::S3ErrorKind,
     ) -> wiggle::anyhow::Result<types::S3Error> {
-        e.try_into()
-            .map_err(|e| wiggle::anyhow::anyhow!(format!("{:?}", e)))
+        Ok(e.into())
     }
 }
 
@@ -61,7 +60,7 @@ impl blockless_s3::BlocklessS3 for WasiCtx {
                 S3ErrorKind::Utf8Error
             })?
             .unwrap();
-        let rs = s3_driver::bucket_command(cmd, &params).await?;
+        let rs = s3_driver::bucket_command(cmd, params).await?;
         Ok(rs.into())
     }
 
@@ -87,7 +86,7 @@ impl blockless_s3::BlocklessS3 for WasiCtx {
                 S3ErrorKind::InvalidParameter
             })?
             .unwrap();
-        s3_driver::bucket_put_object(&cfg, &params).await
+        s3_driver::bucket_put_object(cfg, params).await
     }
 
     async fn s3_read(

@@ -65,8 +65,8 @@ impl HttpRaw {
         );
         let _ = headers.iter().for_each(|(k, v)| {
             let _ = v.iter().for_each(|i| {
-                buf.write(format!("{}: {}", k, i).as_bytes()).unwrap();
-                buf.write(EOL).unwrap();
+                buf.write_all(format!("{}: {}", k, i).as_bytes()).unwrap();
+                buf.write_all(EOL).unwrap();
             });
         });
         buf
@@ -74,25 +74,25 @@ impl HttpRaw {
 
     fn boundary_begin(boundary: &str) -> Vec<u8> {
         let mut buf = Vec::<u8>::with_capacity(1024);
-        buf.write(b"--").unwrap();
-        buf.write(boundary.as_bytes()).unwrap();
-        buf.write(EOL).unwrap();
-        buf.write(b"Content-Disposition: form-data").unwrap();
-        buf.write(EOL).unwrap();
-        buf.write(b"Content-Type: application/octet-stream")
+        buf.write_all(b"--").unwrap();
+        buf.write_all(boundary.as_bytes()).unwrap();
+        buf.write_all(EOL).unwrap();
+        buf.write_all(b"Content-Disposition: form-data").unwrap();
+        buf.write_all(EOL).unwrap();
+        buf.write_all(b"Content-Type: application/octet-stream")
             .unwrap();
-        buf.write(EOL).unwrap();
-        buf.write(EOL).unwrap();
+        buf.write_all(EOL).unwrap();
+        buf.write_all(EOL).unwrap();
         buf
     }
 
     fn boundary_end(boundary: &str) -> Vec<u8> {
         let mut buf = Vec::<u8>::with_capacity(1024);
-        buf.write(EOL).unwrap();
-        buf.write(b"--").unwrap();
-        buf.write(boundary.as_bytes()).unwrap();
-        buf.write(b"--").unwrap();
-        buf.write(EOL).unwrap();
+        buf.write_all(EOL).unwrap();
+        buf.write_all(b"--").unwrap();
+        buf.write_all(boundary.as_bytes()).unwrap();
+        buf.write_all(b"--").unwrap();
+        buf.write_all(EOL).unwrap();
         buf
     }
 
@@ -103,16 +103,16 @@ impl HttpRaw {
             .ok_or(IpfsErrorKind::RequestError)?;
         let boundary = self.boundary.as_ref().ok_or(IpfsErrorKind::RequestError)?;
         let mut body_buf = Self::boundary_begin(boundary);
-        body_buf.write(val).unwrap();
-        body_buf.write(&Self::boundary_end(boundary)).unwrap();
+        body_buf.write_all(val).unwrap();
+        body_buf.write_all(&Self::boundary_end(boundary)).unwrap();
         let mut buf = Vec::new();
-        buf.write(format!("Content-Length: {}", body_buf.len()).as_bytes())
+        buf.write_all(format!("Content-Length: {}", body_buf.len()).as_bytes())
             .unwrap();
-        buf.write(EOL).unwrap();
-        buf.write(format!("Content-Type: multipart/form-data; boundary={}", boundary).as_bytes())
+        buf.write_all(EOL).unwrap();
+        buf.write_all(format!("Content-Type: multipart/form-data; boundary={}", boundary).as_bytes())
             .unwrap();
-        buf.write(EOL).unwrap();
-        buf.write(EOL).unwrap();
+        buf.write_all(EOL).unwrap();
+        buf.write_all(EOL).unwrap();
         buf.extend_from_slice(&body_buf);
         Self::write_all(tcp_stream, buf).await?;
         Ok(val.len() as _)
@@ -214,18 +214,18 @@ impl HttpRaw {
 
     fn get_req_raw(&self) -> Vec<u8> {
         let mut buf = Vec::with_capacity(1024);
-        buf.write(self.method.as_bytes()).unwrap();
-        buf.write(b" ").unwrap();
-        buf.write(self.url.path().as_bytes()).unwrap();
+        buf.write_all(self.method.as_bytes()).unwrap();
+        buf.write_all(b" ").unwrap();
+        buf.write_all(self.url.path().as_bytes()).unwrap();
         self.url.query().map(|q| {
-            buf.write(b"?").unwrap();
-            buf.write(q.as_bytes()).unwrap();
+            buf.write_all(b"?").unwrap();
+            buf.write_all(q.as_bytes()).unwrap();
         });
-        buf.write(b" ").unwrap();
-        buf.write(HTTP1).unwrap();
-        buf.write(EOL).unwrap();
+        buf.write_all(b" ").unwrap();
+        buf.write_all(HTTP1).unwrap();
+        buf.write_all(EOL).unwrap();
         let h = self.header_raw();
-        buf.write(&h).unwrap();
+        buf.write_all(&h).unwrap();
         buf
     }
 

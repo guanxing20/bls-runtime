@@ -18,8 +18,7 @@ impl types::UserErrorConversion for WasiCtx {
         &mut self,
         e: self::IpfsErrorKind,
     ) -> wiggle::anyhow::Result<types::IpfsError> {
-        e.try_into()
-            .map_err(|e| wiggle::anyhow::anyhow!(format!("{:?}", e)))
+        Ok(e.into())
     }
 }
 
@@ -72,7 +71,6 @@ impl blockless_ipfs::BlocklessIpfs for WasiCtx {
         buf_len: u32,
     ) -> Result<u32, IpfsErrorKind> {
         let mut dest_buf = vec![0; buf_len as _];
-        let buf = buf.clone();
         let rs = ipfs_driver::read_body(handle.into(), &mut dest_buf[..]).await?;
         if rs > 0 {
             memory
