@@ -74,11 +74,17 @@ impl BlsRuntimePermissionsContainer {
         if let Some(PermissionGrant::All) = config.deny_write {
             permissions.write.flag_denied_global = true;
         }
+        if let Some(PermissionGrant::All) = config.deny_net {
+            permissions.net.flag_denied_global = true;
+        }
         if let Some(PermissionGrant::All) = config.allow_read {
             permissions.read.granted_global = true;
         }
         if let Some(PermissionGrant::All) = config.allow_write {
             permissions.write.granted_global = true;
+        }
+        if let Some(PermissionGrant::All) = config.allow_net {
+            permissions.net.granted_global = true;
         }
         *self.inner.lock() = permissions;
         Ok(())
