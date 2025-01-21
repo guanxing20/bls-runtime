@@ -75,7 +75,7 @@ impl WasiCtx {
             .and_then(|l| l.fix_stdin_ref().map(String::from))
     }
 
-    pub fn check_url_permissions(&self, host: &Url, api_name: &str) -> bool  {
+    pub fn check_url_permissions(&self, host: &Url, api_name: &str) -> bool {
         match self.perms_container.check_net_url(host, api_name) {
             Ok(_) => true,
             Err(_) => false,

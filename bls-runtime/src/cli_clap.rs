@@ -251,8 +251,6 @@ pub struct PermissionFlags {
     #[clap(long = "deny-net", id="deny-net", num_args=(0..) , value_name = "URL[,]", help = DENY_NET_HELP, value_parser = parser_allow)]
     pub deny_net: Option<PermissionGrant>,
 
-    
-
     #[clap(long = "allow-all", id = "allow-all", help = "Allow all permissions.")]
     pub allow_all: bool,
 }

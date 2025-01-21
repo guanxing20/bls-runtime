@@ -110,9 +110,8 @@ impl blockless_http::BlocklessHttp for WasiCtx {
                 HttpErrorKind::Utf8Error
             })?
             .unwrap();
-        
-        let url_ = Url::from_str(url)
-            .map_err(|_| HttpErrorKind::InvalidUrl)?;
+
+        let url_ = Url::from_str(url).map_err(|_| HttpErrorKind::InvalidUrl)?;
         if !self.check_url_permissions(&url_, "http_req") {
             error!("Permission Deny");
             return Err(HttpErrorKind::PermissionDeny);
