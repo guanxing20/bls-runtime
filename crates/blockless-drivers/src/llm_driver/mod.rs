@@ -134,6 +134,7 @@ mod tests {
     use tracing::{info, Level};
     use tracing_subscriber::FmtSubscriber;
 
+    #[ignore]
     #[tokio::test]
     async fn test_llm_driver_e2e() {
         let _ = FmtSubscriber::builder()

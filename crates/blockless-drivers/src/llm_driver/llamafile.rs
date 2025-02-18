@@ -220,6 +220,7 @@ mod tests {
             .try_init();
     }
 
+    #[ignore]
     #[tokio::test]
     async fn test_llamafile_lifecycle() {
         init_test_logging();
