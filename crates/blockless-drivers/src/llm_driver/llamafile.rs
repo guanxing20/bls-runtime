@@ -248,11 +248,11 @@ mod tests {
 
     #[test]
     fn test_model_parsing() {
-      assert!(SupportedModels::from_str("Llama-3.2-1B-Instruct").is_ok());
-      assert!(SupportedModels::from_str("Llama-3.2-1B-Instruct-Q6_K").is_ok());
+        assert!(SupportedModels::from_str("Llama-3.2-1B-Instruct").is_ok());
+        assert!(SupportedModels::from_str("Llama-3.2-1B-Instruct-Q6_K").is_ok());
 
-      assert!(SupportedModels::from_str("Llama-3.2-3B-Instruct").is_ok());
-      assert!(SupportedModels::from_str("Llama-3.2-3B-Instruct-Q6_K").is_ok());
-      assert!(SupportedModels::from_str("unsupported-model").is_err());
+        assert!(SupportedModels::from_str("Llama-3.2-3B-Instruct").is_ok());
+        assert!(SupportedModels::from_str("Llama-3.2-3B-Instruct-Q6_K").is_ok());
+        assert!(SupportedModels::from_str("unsupported-model").is_err());
     }
 }
