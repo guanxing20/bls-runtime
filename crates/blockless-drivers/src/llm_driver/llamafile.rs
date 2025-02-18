@@ -206,3 +206,53 @@ impl Drop for LlamafileProvider {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+    use tracing::Level;
+    use tracing_subscriber::FmtSubscriber;
+
+    fn init_test_logging() {
+        let _ = FmtSubscriber::builder()
+            .with_max_level(Level::DEBUG)
+            .with_test_writer()
+            .try_init();
+    }
+
+    #[tokio::test]
+    async fn test_llamafile_lifecycle() {
+        init_test_logging();
+
+        let mut provider = LlamafileProvider::new(SupportedModels::Llama321BInstruct(None));
+        provider
+            .initialize(&ProviderConfig::default())
+            .await
+            .unwrap();
+
+        let messages = vec![
+            Message {
+                role: "system".to_string(),
+                content: "You are a helpful assistant.".to_string(),
+            },
+            Message {
+                role: "user".to_string(),
+                content: "Hello!".to_string(),
+            },
+        ];
+
+        let response = provider.chat(messages).await.unwrap();
+        info!("Chat response: {:?}", response);
+        assert!(!response.content.is_empty());
+    }
+
+    #[test]
+    fn test_model_parsing() {
+      assert!(SupportedModels::from_str("Llama-3.2-1B-Instruct").is_ok());
+      assert!(SupportedModels::from_str("Llama-3.2-1B-Instruct-Q6_K").is_ok());
+
+      assert!(SupportedModels::from_str("Llama-3.2-3B-Instruct").is_ok());
+      assert!(SupportedModels::from_str("Llama-3.2-3B-Instruct-Q6_K").is_ok());
+      assert!(SupportedModels::from_str("unsupported-model").is_err());
+    }
+}
