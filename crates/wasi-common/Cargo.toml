@@ -55,6 +55,11 @@ features = [
     "Win32_Networking_WinSock",
 ]
 
+[target.'cfg(windows)'.dependencies.winapi]
+workspace = true
+features = ["commapi", "knownfolders", "mswsock", "objbase", "psapi", "shlobj", "tlhelp32", "winbase", "winerror", "winuser", "winsock2", "processenv", "wincon", "wincontypes"]
+
+
 [dev-dependencies]
 wasi-common = { path = '.', features = ['tokio'] }
 tempfile = { workspace = true }
