@@ -94,5 +94,8 @@ tokio = [
 ]
 exit = [ "wasmtime", "dep:libc" ]
 
+[target.'cfg(windows)'.dependencies]
+winapi = { workspace = true, features = ["commapi", "knownfolders", "mswsock", "objbase", "psapi", "shlobj", "tlhelp32", "winbase", "winerror", "winuser", "winsock2", "processenv", "wincon", "wincontypes"] }
+
 [package.metadata.docs.rs]
 all-features = true

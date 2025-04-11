@@ -73,6 +73,7 @@ system-interface = { version = "0.27.1", features = ["cap_std_impls"] }
 fs-set-times = "0.20.1"
 io-extras = "0.18.1"
 rustix = "0.38.31"
+winapi = "=0.3.9"
 
 [workspace.lints.rust]
 # Turn on some lints which are otherwise allow-by-default in rustc.
