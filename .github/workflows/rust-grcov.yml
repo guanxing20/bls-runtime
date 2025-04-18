@@ -26,6 +26,7 @@ jobs:
           command: test
           args: --all
         env:
+          LLVM_PROFILE_FILE: "target/%p-%m.profraw"
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: "-Cinstrument-coverage  -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
 
