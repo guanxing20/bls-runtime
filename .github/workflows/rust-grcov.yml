@@ -26,7 +26,7 @@ jobs:
           command: test
           args: --all
         env:
-          LLVM_PROFILE_FILE: "%p-%m.profraw"
+          LLVM_PROFILE_FILE: "target/profraw/%p-%m.profraw"
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: "-Cinstrument-coverage  -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
 
@@ -35,13 +35,9 @@ jobs:
         with:
           crate: grcov
           use-tool-cache: true
-      - name: show 
-        run: |
-          find ./ -name "*.profraw"
-          find target ! -name '*.o' ! -name "*.d" ! -name "*.a" ! -type d ! -name "*.rlib" ! -name "*.rmeta" ! -name "*.bin"
       - name: Gather coverage data
         id: coverage
-        uses: actions-rs/grcov@v0.1
+        uses: grcov/grcov@master
         with:
           coveralls-token: ${{ secrets.COVERALLS_TOKEN }}
 
