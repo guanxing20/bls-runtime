@@ -37,7 +37,7 @@ jobs:
           use-tool-cache: true
       - name: Gather coverage data
         id: coverage
-        uses: grcov/grcov@master
+        uses: Joinhack/grcov@master
         with:
           coveralls-token: ${{ secrets.COVERALLS_TOKEN }}
 
