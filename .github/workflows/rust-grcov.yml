@@ -34,6 +34,8 @@ jobs:
         with:
           crate: grcov
           use-tool-cache: true
+      - name: show 
+        run: |
           find ./ -name "*.profraw"
           find target ! -name '*.o' ! -name "*.d" ! -name "*.a" ! -type d ! -name "*.rlib" ! -name "*.rmeta" ! -name "*.bin"
       - name: Gather coverage data
