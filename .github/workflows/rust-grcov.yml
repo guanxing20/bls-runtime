@@ -21,11 +21,11 @@ jobs:
         with:
           components: rustfmt
 
-      - name: Execute tests using
+      - name: Execute tests for coveralls
         run: cargo test --all --all-features
         env:
           CARGO_INCREMENTAL: 0
-          RUSTFLAGS: "-Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off"
+          RUSTFLAGS: "-Cinstrument-coverage -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off"
 
       - name: Pre-installing grcov
         uses: actions-rs/install@v0.1
