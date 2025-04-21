@@ -68,7 +68,7 @@ pub struct InstanceGuard<'a, T> {
     handle: u32,
 }
 
-impl<'a, T> Deref for InstanceGuard<'a, T> {
+impl<T> Deref for InstanceGuard<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -76,7 +76,7 @@ impl<'a, T> Deref for InstanceGuard<'a, T> {
     }
 }
 
-impl<'a, T> DerefMut for InstanceGuard<'a, T> {
+impl<T> DerefMut for InstanceGuard<'_, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.guard.get_mut(&self.handle).unwrap()
     }

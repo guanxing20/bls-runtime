@@ -98,6 +98,6 @@ pub async fn read(handle: u32, buf: &mut [u8]) -> Result<u32, S3ErrorKind> {
     }
     match ctx.get_mut(&handle) {
         Some(S3Ctx::VecResult(resp)) => Ok(resp.copy_remain(buf) as _),
-        _ => return Err(S3ErrorKind::InvalidHandle),
+        _ => Err(S3ErrorKind::InvalidHandle),
     }
 }

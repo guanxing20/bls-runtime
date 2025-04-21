@@ -72,21 +72,19 @@ impl CgiProcess {
         let args = match obj["args"] {
             json::JsonValue::Array(ref args) => args
                 .iter()
-                .map(|arg| arg.as_str().map(String::from))
-                .flatten()
+                .filter_map(|arg| arg.as_str().map(String::from))
                 .collect(),
             _ => Vec::new(),
         };
         let envs = match obj["envs"] {
             json::JsonValue::Array(ref args) => args
                 .iter()
-                .map(|arg| {
+                .filter_map(|arg| {
                     arg["env_name"]
                         .as_str()
                         .map(String::from)
                         .zip(arg["env_val"].as_str().map(String::from))
                 })
-                .flatten()
                 .collect(),
             _ => Vec::new(),
         };
@@ -240,7 +238,7 @@ async fn get_file_meta(file_path: &str) -> anyhow::Result<Option<ExtensionMeta>>
         Some(b) => b,
         None => return Ok(None),
     };
-    if is_cgi != true {
+    if !is_cgi {
         return Ok(None);
     }
     let alias = match json["alias"].as_str() {
@@ -297,7 +295,7 @@ async fn list_cgi_directory(
                     meta.md5 = md5;
                 }
                 //update sqlite with normal status, there is update status just for flags.
-                meta.status = ExtensionMetaStatus::UPDATE;
+                meta.status = ExtensionMetaStatus::Update;
             }
             None => {
                 let fpath: &str = full_path.as_os_str().to_str().unwrap();
@@ -397,6 +395,7 @@ mod test {
         {
             let mut file = fs::OpenOptions::new()
                 .create(true)
+                .truncate(true)
                 .write(true)
                 .mode(0o700)
                 .open(test_extension)

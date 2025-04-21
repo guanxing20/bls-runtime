@@ -15,9 +15,9 @@ fn multi_threads() {
     )
     "#;
     let file_path = temp_dir.path().join("test_multi_threads.wat");
-    fs::write(&file_path, &code).unwrap();
+    fs::write(&file_path, code).unwrap();
     let entry = file_path.to_str().unwrap();
-    let mut cfg = BlocklessConfig::new(&entry);
+    let mut cfg = BlocklessConfig::new(entry);
     cfg.set_feature_thread(true);
     common::multi_threads_run_blockless(cfg).unwrap();
 }

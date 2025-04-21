@@ -36,19 +36,18 @@ pub trait Driver {
 }
 
 lazy_static! {
-    pub static ref DRIVERS: Mutex<DriverConetxtImpl> = Mutex::new(DriverConetxtImpl::new());
+    pub static ref DRIVERS: Mutex<DriverContextImpl> = Mutex::new(DriverContextImpl::new());
 }
 
-pub struct DriverConetxtImpl {
+pub struct DriverContextImpl {
     drivers: HashMap<String, Arc<dyn Driver + Sync + Send>>,
 }
 
-impl DriverConetxtImpl {
+impl DriverContextImpl {
     fn new() -> Self {
-        let ctx = DriverConetxtImpl {
+        DriverContextImpl {
             drivers: HashMap::new(),
-        };
-        ctx
+        }
     }
 
     fn insert_driver<T>(&mut self, driver: T)
@@ -74,7 +73,7 @@ impl DriverConetxtImpl {
             }
             Ok(s) => s.to_lowercase(),
         };
-        self.drivers.get(&schema).map(|d| d.clone())
+        self.drivers.get(&schema).cloned()
     }
 }
 

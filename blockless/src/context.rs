@@ -5,7 +5,7 @@ use wasmtime::StoreLimits;
 use wasmtime_wasi::preview1::WasiP1Ctx;
 use wasmtime_wasi_threads::WasiThreadsCtx;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub(crate) struct BlocklessContext {
     pub(crate) preview1_ctx: Option<wasi_common::WasiCtx>,
 
@@ -20,19 +20,6 @@ pub(crate) struct BlocklessContext {
     pub(crate) store_limits: StoreLimits,
 }
 
-impl Default for BlocklessContext {
-    fn default() -> Self {
-        Self {
-            wasi_nn_wit: None,
-            wasi_nn_witx: None,
-            preview1_ctx: None,
-            preview2_ctx: None,
-            wasi_threads: None,
-            store_limits: Default::default(),
-        }
-    }
-}
-
 impl BlocklessContext {
     pub(crate) fn preview2_ctx(&mut self) -> &mut WasiP1Ctx {
         let ctx = self.preview2_ctx.as_mut().unwrap();
@@ -43,9 +30,9 @@ impl BlocklessContext {
     }
 
     pub(crate) fn set_permisions(&mut self, config: &PermissionsConfig) {
-        self.preview1_ctx
-            .as_mut()
-            .map(|ctx| ctx.set_permissions_config(config).unwrap());
+        if let Some(ctx) = self.preview1_ctx.as_mut() {
+            ctx.set_permissions_config(config).unwrap();
+        }
     }
 }
 

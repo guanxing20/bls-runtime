@@ -86,9 +86,9 @@ impl From<u8> for CliExitCode {
     }
 }
 
-impl Into<u8> for CliExitCode {
-    fn into(self) -> u8 {
-        match self {
+impl From<CliExitCode> for u8 {
+    fn from(val: CliExitCode) -> Self {
+        match val {
             CliExitCode::Success => 0,
             CliExitCode::FlueUsedOut => 1,
             CliExitCode::CallStackExhausted => 2,
@@ -111,9 +111,9 @@ impl Into<u8> for CliExitCode {
     }
 }
 
-impl Into<i32> for CliExitCode {
-    fn into(self) -> i32 {
-        Into::<u8>::into(self) as i32
+impl From<CliExitCode> for i32 {
+    fn from(val: CliExitCode) -> Self {
+        u8::from(val) as i32
     }
 }
 

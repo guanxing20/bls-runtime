@@ -16,6 +16,7 @@ wiggle::from_witx!({
     wasmtime: false,
 });
 
+#[allow(clippy::unnecessary_fallible_conversions)]
 impl types::UserErrorConversion for WasiCtx {
     fn cgi_error_from_cgi_error_kind(
         &mut self,

@@ -61,7 +61,7 @@ impl blockless_llm::BlocklessLlm for WasiCtx {
             .unwrap();
         let fd = llm_driver::llm_set_model(model).await?;
         memory
-            .write(handle, fd.into())
+            .write(handle, fd)
             .map_err(|_| LlmErrorKind::RuntimeError)?;
         return Ok(());
     }
@@ -76,7 +76,7 @@ impl blockless_llm::BlocklessLlm for WasiCtx {
         buf: GuestPtr<u8>,
         buf_len: u8,
     ) -> Result<u8, LlmErrorKind> {
-        let model = llm_driver::llm_get_model(handle.into()).await?;
+        let model = llm_driver::llm_get_model(handle).await?;
         let bytes = model.as_bytes();
         let copyn = buf_len.min(bytes.len() as u8);
         memory
@@ -100,7 +100,7 @@ impl blockless_llm::BlocklessLlm for WasiCtx {
                 LlmErrorKind::Utf8Error
             })?
             .unwrap();
-        llm_driver::llm_set_options(handle.into(), options.as_bytes()).await?;
+        llm_driver::llm_set_options(handle, options.as_bytes()).await?;
         return Ok(());
     }
 
@@ -114,7 +114,7 @@ impl blockless_llm::BlocklessLlm for WasiCtx {
         buf: GuestPtr<u8>,
         buf_len: u16,
     ) -> Result<u16, LlmErrorKind> {
-        let options = llm_driver::llm_get_options(handle.into()).await?;
+        let options = llm_driver::llm_get_options(handle).await?;
         let bytes = serde_json::to_vec(&options).map_err(|_| LlmErrorKind::RuntimeError)?;
         let copyn = buf_len.min(bytes.len() as u16);
         memory
@@ -136,7 +136,7 @@ impl blockless_llm::BlocklessLlm for WasiCtx {
                 LlmErrorKind::Utf8Error
             })?
             .unwrap();
-        llm_driver::llm_prompt(handle.into(), prompt).await?;
+        llm_driver::llm_prompt(handle, prompt).await?;
         Ok(())
     }
 
@@ -147,7 +147,7 @@ impl blockless_llm::BlocklessLlm for WasiCtx {
         buf: GuestPtr<u8>,
         buf_len: u16,
     ) -> Result<u16, LlmErrorKind> {
-        let response = llm_driver::llm_read_response(handle.into()).await?;
+        let response = llm_driver::llm_read_response(handle).await?;
         let bytes = response.as_bytes();
         let copyn = buf_len.min(bytes.len() as u16);
         memory
@@ -161,6 +161,6 @@ impl blockless_llm::BlocklessLlm for WasiCtx {
         _memory: &mut GuestMemory<'_>,
         handle: types::LlmHandle,
     ) -> Result<(), LlmErrorKind> {
-        llm_driver::llm_close(handle.into()).await
+        llm_driver::llm_close(handle).await
     }
 }

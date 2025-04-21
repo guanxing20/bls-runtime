@@ -57,7 +57,6 @@ fn logger_init(
             let file = fs::OpenOptions::new()
                 .append(true)
                 .create(true)
-                .write(true)
                 .open(f)
                 .map_err(|_e| {
                     CliExitCode::UnknownError(
@@ -194,9 +193,9 @@ async fn wasm_runtime(mut cfg: CliConfig, cli_command_opts: CliCommandOpts) -> C
 }
 
 fn set_root_path_env_var(cli_command_opts: &CliCommandOpts) {
-    cli_command_opts
-        .fs_root_path()
-        .map(|s| unsafe { std::env::set_var(ENV_ROOT_PATH_NAME, s.as_str()) });
+    if let Some(s) = cli_command_opts.fs_root_path() {
+        unsafe { std::env::set_var(ENV_ROOT_PATH_NAME, s.as_str()) }
+    }
 }
 
 async fn non_blocking_read<R: Read + Send + 'static>(mut reader: R) -> Option<String> {
@@ -249,7 +248,7 @@ async fn main() -> CliExitCode {
     let path = cli_command_opts.input_ref();
 
     match cli_command_opts.runtime_type() {
-        RuntimeType::V86 => match v86_runtime(&path) {
+        RuntimeType::V86 => match v86_runtime(path) {
             Ok(exit_code_err) => return exit_code_err.into(),
             Err(e) => {
                 perror!("{}", e);
@@ -257,7 +256,7 @@ async fn main() -> CliExitCode {
             }
         },
         RuntimeType::Wasm => {
-            let cfg = match load_cli_config(&path) {
+            let cfg = match load_cli_config(path) {
                 Ok(cfg) => cfg,
                 Err(e) => {
                     perror!("failed to load CLI config: {}", e);

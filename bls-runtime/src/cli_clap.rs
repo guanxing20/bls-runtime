@@ -117,26 +117,24 @@ fn parse_nn_graph(envs: &str) -> Result<BlsNnGraph> {
 
 fn parse_opts(opt: &str) -> Result<OptimizeOpts> {
     let kvs: Vec<_> = opt.splitn(2, ",").collect();
-    if kvs.len() == 1 {
-        if kvs[0] == "help" {
-            let mut max = 0;
-            let options = OptimizeOpts::OPTIONS;
-            for d in options {
-                max = max.max(d.opt_name.len() + d.opt_docs.len());
-            }
-            for d in options {
-                print!("   -O     {}", d.opt_name);
-                print!(" --");
-                for line in d.opt_docs.lines().map(|s| s.trim()) {
-                    if line.is_empty() {
-                        break;
-                    }
-                    print!(" {line}");
-                }
-                println!();
-            }
-            std::process::exit(0);
+    if kvs.len() == 1 && kvs[0] == "help" {
+        let mut max = 0;
+        let options = OptimizeOpts::OPTIONS;
+        for d in options {
+            max = max.max(d.opt_name.len() + d.opt_docs.len());
         }
+        for d in options {
+            print!("   -O     {}", d.opt_name);
+            print!(" --");
+            for line in d.opt_docs.lines().map(|s| s.trim()) {
+                if line.is_empty() {
+                    break;
+                }
+                print!(" {line}");
+            }
+            println!();
+        }
+        std::process::exit(0);
     }
     let mut parsed = vec![];
     for kv in kvs.iter() {
@@ -196,13 +194,13 @@ fn parse_listen(s: &str) -> Result<(SocketAddr, Option<u32>)> {
     let saddrs = splitn.collect::<Vec<_>>();
     if saddrs.len() < 2 {
         let addrs = s.to_socket_addrs()?;
-        for addr in addrs {
+        if let Some(addr) = addrs.into_iter().next() {
             return Ok((addr, None));
         }
     } else {
         let port: u32 = saddrs[1].parse()?;
         let addrs = saddrs[0].to_socket_addrs()?;
-        for addr in addrs {
+        if let Some(addr) = addrs.into_iter().next() {
             return Ok((addr, Some(port)));
         }
     }
@@ -249,18 +247,17 @@ pub struct PermissionFlags {
     pub allow_all: bool,
 }
 
-impl Into<PermissionsConfig> for PermissionFlags {
-    fn into(self) -> PermissionsConfig {
-        let mut permissions = PermissionsConfig {
-            allow_read: self.allow_read,
-            deny_read: self.deny_read,
-            allow_write: self.allow_write,
-            deny_write: self.deny_write,
-            deny_net: self.deny_net,
-            allow_net: self.allow_net,
-            allow_all: self.allow_all,
-        };
-        permissions
+impl From<PermissionFlags> for PermissionsConfig {
+    fn from(val: PermissionFlags) -> Self {
+        PermissionsConfig {
+            allow_read: val.allow_read,
+            deny_read: val.deny_read,
+            allow_write: val.allow_write,
+            deny_write: val.deny_write,
+            deny_net: val.deny_net,
+            allow_net: val.allow_net,
+            allow_all: val.allow_all,
+        }
     }
 }
 
@@ -450,7 +447,7 @@ impl CliCommandOpts {
         if let Some(stdin) = self.stdio.stdin {
             conf.0.stdio.stdin(stdin);
         }
-        if self.permissions.len() > 0 {
+        if !self.permissions.is_empty() {
             conf.0.set_permisions(self.permissions);
         }
 
@@ -460,11 +457,11 @@ impl CliCommandOpts {
         conf.0.set_drivers_root_path(self.drivers_root_path);
         let mut modules = self.modules;
         let mut has_entry = false;
-        self.entry.map(|e| {
+        if let Some(e) = self.entry {
             has_entry = true;
-            conf.0.set_entry(e)
-        });
-        if modules.len() > 0 {
+            conf.0.set_entry(e);
+        }
+        if !modules.is_empty() {
             modules.push(BlocklessModule {
                 module_type: ModuleType::Entry,
                 name: String::new(),
@@ -532,7 +529,7 @@ mod test {
     #[test]
     fn test_cli_command_v86() {
         let cli = CliCommandOpts::try_parse_from(["cli", "test", "--v86"]).unwrap();
-        assert_eq!(cli.v86, true);
+        assert!(cli.v86);
     }
 
     #[test]
