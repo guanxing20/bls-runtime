@@ -1,6 +1,6 @@
 #![allow(non_upper_case_globals)]
-use crate::ipfs_driver;
 use crate::IpfsErrorKind;
+use crate::ipfs_driver;
 use log::error;
 use wasi_common::WasiCtx;
 use wiggle::GuestMemory;

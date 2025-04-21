@@ -1,12 +1,12 @@
 #![allow(unused)]
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use blockless::{
     BlocklessConfig, BlocklessModule, BlsNnGraph, BlsOptions, ModuleType, OptimizeOpts,
     OptionParser, Permission, PermissionGrant, PermissionsConfig, Stderr, Stdin, Stdout,
 };
 use clap::{
-    builder::{TypedValueParser, ValueParser},
     Arg, ArgMatches, Command, Parser,
+    builder::{TypedValueParser, ValueParser},
 };
 use std::{
     collections::HashMap,
@@ -50,23 +50,18 @@ const PERMISSION_HELP: &str = "The permissions for app";
 
 const MODULES_HELP: &str = "The modules used by app";
 
-const STDOUT_HELP: &str =
-    "The app's stdout setting, which can be configured to one of the following values: inherit, null, or a specific file name.";
+const STDOUT_HELP: &str = "The app's stdout setting, which can be configured to one of the following values: inherit, null, or a specific file name.";
 
-const STDERR_HELP: &str =
-    "The app's stderr setting, which can be configured to one of the following values: inherit, null, or a specific file name";
+const STDERR_HELP: &str = "The app's stderr setting, which can be configured to one of the following values: inherit, null, or a specific file name";
 
-const STDIN_HELP: &str =
-    "The app's stdin setting, which can be configured to one of the following values: inherit or a fixed input string.";
+const STDIN_HELP: &str = "The app's stdin setting, which can be configured to one of the following values: inherit or a fixed input string.";
 
-const MAP_DIR_HELP: &str =
-    "Grant access to a host directory for a guest. If specified as HOST_DIR, the corresponding directory on the host will be made available within the guest.";
+const MAP_DIR_HELP: &str = "Grant access to a host directory for a guest. If specified as HOST_DIR, the corresponding directory on the host will be made available within the guest.";
 
 const V86_HELP: &str =
     "V86 model flag when the v86 flag the car file must be v86 configure and image.";
 
-const THREAD_SUPPORT_HELP: &str =
-    "Enables multi-threading in the runtime. When set, the runtime can spawn threads, allowing concurrent task execution for improved performance and scalability.";
+const THREAD_SUPPORT_HELP: &str = "Enables multi-threading in the runtime. When set, the runtime can spawn threads, allowing concurrent task execution for improved performance and scalability.";
 
 const TCP_LISTEN_HELP: &str = "Grant access to the given TCP listen socket. ";
 
@@ -82,8 +77,7 @@ const MAX_MEMORY_SIZE_HELP: &str = "The max memory size limited.";
 
 const NN_HELP: &str = "Enable support for WASI neural network imports .";
 
-const NN_GRAPH_HELP: &str =
-    "Pre-load machine learning graphs (i.e., models) for use by wasi-nn.  \
+const NN_GRAPH_HELP: &str = "Pre-load machine learning graphs (i.e., models) for use by wasi-nn.  \
 Each use of the flag will preload a ML model from the host directory using the given model encoding";
 
 const ALLOW_READ_HELP: &str = "Allow the app to read permissions.";

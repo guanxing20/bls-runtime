@@ -131,7 +131,7 @@ pub async fn llm_close(handle: u32) -> Result<(), LlmErrorKind> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tracing::{info, Level};
+    use tracing::{Level, info};
     use tracing_subscriber::FmtSubscriber;
 
     #[ignore]

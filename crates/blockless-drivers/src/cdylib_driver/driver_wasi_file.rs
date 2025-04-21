@@ -3,7 +3,7 @@ use crate::error::*;
 use super::driver_api::DriverApi;
 use std::any::Any;
 use wasi_common::Error;
-use wasi_common::{file::FileType, WasiFile};
+use wasi_common::{WasiFile, file::FileType};
 
 pub(crate) struct DriverWasiFile {
     api: DriverApi,

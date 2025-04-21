@@ -1,6 +1,6 @@
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::{braced, Result, Token};
+use syn::{Result, Token, braced};
 use wiggle_generate::config::{Paths, WitxConf};
 
 pub struct BlocklessConfig {

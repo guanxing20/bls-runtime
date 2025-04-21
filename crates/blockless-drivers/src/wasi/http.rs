@@ -1,7 +1,7 @@
 #![allow(non_upper_case_globals)]
 use std::str::FromStr;
 
-use crate::{http_driver, HttpErrorKind};
+use crate::{HttpErrorKind, http_driver};
 use log::error;
 use url::Url;
 use wasi_common::WasiCtx;

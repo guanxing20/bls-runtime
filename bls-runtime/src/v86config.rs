@@ -1,7 +1,7 @@
 use std::fs::File;
 
 use crate::{
-    config::{load_extract_from_car, replace_vars, Config},
+    config::{Config, load_extract_from_car, replace_vars},
     error::CliExitCode,
 };
 use anyhow::Result;

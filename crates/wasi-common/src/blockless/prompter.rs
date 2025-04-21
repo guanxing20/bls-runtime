@@ -1,26 +1,26 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 
 use super::colors;
-use anyhow::bail;
 use anyhow::Error as AnyError;
+use anyhow::bail;
 use std::fmt::Write;
 use std::io::BufRead;
 use std::io::IsTerminal;
 use std::io::StderrLock;
 use std::io::StdinLock;
 use std::io::Write as IoWrite;
+use std::sync::Once;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
-use std::sync::Once;
 
-use bls_permissions::bls_set_prompt_callbacks;
-use bls_permissions::bls_set_prompter;
-use bls_permissions::is_standalone;
+pub use bls_permissions::MAX_PERMISSION_PROMPT_LENGTH;
+pub use bls_permissions::PERMISSION_EMOJI;
 pub use bls_permissions::PermissionPrompter;
 pub use bls_permissions::PromptCallback;
 pub use bls_permissions::PromptResponse;
-pub use bls_permissions::MAX_PERMISSION_PROMPT_LENGTH;
-pub use bls_permissions::PERMISSION_EMOJI;
+use bls_permissions::bls_set_prompt_callbacks;
+use bls_permissions::bls_set_prompter;
+use bls_permissions::is_standalone;
 
 /// Helper function to make control characters visible so users can see the underlying filename.
 fn escape_control_characters(s: &str) -> std::borrow::Cow<str> {
@@ -126,8 +126,8 @@ fn clear_stdin(stdin_lock: &mut StdinLock, stderr_lock: &mut StderrLock) -> Resu
     use winapi::um::wincontypes::INPUT_RECORD;
     use winapi::um::wincontypes::KEY_EVENT;
     use winapi::um::winnt::HANDLE;
-    use winapi::um::winuser::MapVirtualKeyW;
     use winapi::um::winuser::MAPVK_VK_TO_VSC;
+    use winapi::um::winuser::MapVirtualKeyW;
     use winapi::um::winuser::VK_RETURN;
 
     // SAFETY: winapi calls
@@ -241,9 +241,17 @@ impl PermissionPrompter for TtyPrompter {
 
         #[allow(clippy::print_stderr)]
         if message.len() > MAX_PERMISSION_PROMPT_LENGTH {
-            eprintln!("❌ Permission prompt length ({} bytes) was larger than the configured maximum length ({} bytes): denying request.", message.len(), MAX_PERMISSION_PROMPT_LENGTH);
-            eprintln!("❌ WARNING: This may indicate that code is trying to bypass or hide permission check requests.");
-            eprintln!("❌ Run again with --allow-{name} to bypass this check if this is really what you want to do.");
+            eprintln!(
+                "❌ Permission prompt length ({} bytes) was larger than the configured maximum length ({} bytes): denying request.",
+                message.len(),
+                MAX_PERMISSION_PROMPT_LENGTH
+            );
+            eprintln!(
+                "❌ WARNING: This may indicate that code is trying to bypass or hide permission check requests."
+            );
+            eprintln!(
+                "❌ Run again with --allow-{name} to bypass this check if this is really what you want to do."
+            );
             return PromptResponse::Deny;
         }
 
@@ -304,7 +312,9 @@ impl PermissionPrompter for TtyPrompter {
             );
             writeln!(&mut output, "┠─ {}", colors::italic(&msg)).unwrap();
             let msg = if is_standalone() {
-                format!("Specify the required permissions during compile time using `bls-runtime compile --allow-{name}`.")
+                format!(
+                    "Specify the required permissions during compile time using `bls-runtime compile --allow-{name}`."
+                )
             } else {
                 format!("Run again with --allow-{name} to bypass this prompt.")
             };

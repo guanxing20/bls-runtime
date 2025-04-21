@@ -2,8 +2,8 @@ use std::{
     collections::HashMap,
     ops::{Deref, DerefMut},
     sync::{
-        atomic::{AtomicU32, Ordering},
         Mutex, MutexGuard,
+        atomic::{AtomicU32, Ordering},
     },
 };
 

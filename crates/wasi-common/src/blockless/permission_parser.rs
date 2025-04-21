@@ -1,6 +1,5 @@
 use super::DescriptorParserError;
 use anyhow::Error as AnyError;
-use bls_permissions::normalize_path;
 use bls_permissions::AllowRunDescriptor;
 use bls_permissions::AllowRunDescriptorParseResult;
 use bls_permissions::DenyRunDescriptor;
@@ -14,6 +13,7 @@ use bls_permissions::ReadDescriptor;
 use bls_permissions::RunQueryDescriptor;
 use bls_permissions::SysDescriptor;
 use bls_permissions::WriteDescriptor;
+use bls_permissions::normalize_path;
 use std::path::PathBuf;
 
 #[derive(Debug)]

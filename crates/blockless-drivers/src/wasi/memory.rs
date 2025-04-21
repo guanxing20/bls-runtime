@@ -1,5 +1,5 @@
 #![allow(non_upper_case_globals)]
-use crate::{memory_driver, BlocklessMemoryErrorKind};
+use crate::{BlocklessMemoryErrorKind, memory_driver};
 use std::env;
 use wasi_common::WasiCtx;
 use wiggle::{GuestMemory, GuestPtr};

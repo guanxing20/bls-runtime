@@ -1,5 +1,5 @@
 #![allow(non_upper_case_globals)]
-use crate::{llm_driver, LlmErrorKind};
+use crate::{LlmErrorKind, llm_driver};
 use log::error;
 use wasi_common::WasiCtx;
 use wiggle::{GuestMemory, GuestPtr};

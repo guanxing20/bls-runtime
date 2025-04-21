@@ -4,8 +4,8 @@ use log::error;
 use std::future::Future;
 use std::pin::Pin;
 use tokio::net::TcpStream;
-use wasi_common::sync::net::Socket;
 use wasi_common::WasiFile;
+use wasi_common::sync::net::Socket;
 
 pub struct TcpDriver {}
 

@@ -3,7 +3,7 @@ pub mod error;
 mod modules;
 
 pub use anyhow::Result as AnyResult;
-use anyhow::{bail, Context};
+use anyhow::{Context, bail};
 use blockless_drivers::{CdylibDriver, DriverConetxt};
 use blockless_env;
 pub use blockless_multiaddr::MultiAddr;
@@ -19,8 +19,8 @@ use wasi_common::sync::WasiCtxBuilder;
 use wasi_common::sync::{Dir, TcpListener};
 pub use wasi_common::*;
 use wasmtime::{
-    component::Component, Config, Engine, Linker, Module, Precompiled, Store, StoreLimits,
-    StoreLimitsBuilder, Trap,
+    Config, Engine, Linker, Module, Precompiled, Store, StoreLimits, StoreLimitsBuilder, Trap,
+    component::Component,
 };
 use wasmtime_wasi::WasiView;
 use wasmtime_wasi::{DirPerms, FilePerms};

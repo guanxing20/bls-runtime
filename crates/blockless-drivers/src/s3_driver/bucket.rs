@@ -1,5 +1,5 @@
 use log::{error, trace};
-use s3::{creds::Credentials, Bucket, BucketConfiguration, Region};
+use s3::{Bucket, BucketConfiguration, Region, creds::Credentials};
 
 use crate::S3ErrorKind;
 

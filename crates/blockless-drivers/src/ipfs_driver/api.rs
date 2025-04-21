@@ -1,6 +1,6 @@
 use crate::IpfsErrorKind;
 
-use super::{file::FileApi, gen_boundary, HttpRaw};
+use super::{HttpRaw, file::FileApi, gen_boundary};
 use crate::read_ext::ReadRemain;
 
 pub struct Api {

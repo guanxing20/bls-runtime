@@ -6,8 +6,8 @@ use std::{
 };
 
 use crate::CgiErrorKind;
-use json::object::Object as JsonObject;
 use json::JsonValue;
+use json::object::Object as JsonObject;
 use log::{debug, error};
 #[cfg(target_family = "unix")]
 use std::os::unix::prelude::MetadataExt;
@@ -19,7 +19,7 @@ use tokio::{
 
 const DB_NAME: &str = ".extsdb";
 
-use super::db::{ExtensionMeta, ExtensionMetaStatus, DB};
+use super::db::{DB, ExtensionMeta, ExtensionMetaStatus};
 
 fn get_db(path: impl AsRef<Path>) -> MutexGuard<'static, Option<DB>> {
     static mut DB: Mutex<Option<DB>> = Mutex::new(None);

@@ -1,7 +1,7 @@
 mod bucket;
 use std::{collections::HashMap, sync::Once};
 
-use crate::{read_ext::ReadRemain, S3ErrorKind};
+use crate::{S3ErrorKind, read_ext::ReadRemain};
 
 pub struct VecResult {
     content: Vec<u8>,

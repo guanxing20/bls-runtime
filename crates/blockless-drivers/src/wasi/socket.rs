@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use wasi_common::{
+    WasiCtx, WasiFile,
     file::{FileAccessMode, FileEntry},
     sync::net::Socket,
-    WasiCtx, WasiFile,
 };
 
 use crate::BlocklessSocketErrorKind;

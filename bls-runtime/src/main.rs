@@ -6,17 +6,17 @@ mod error;
 mod plog;
 mod v86;
 mod v86config;
-use blockless::{blockless_run, LoggerLevel, Stdin};
+use blockless::{LoggerLevel, Stdin, blockless_run};
 #[allow(unused_imports)]
 use clap::Parser;
 use clap::{CommandFactory, FromArgMatches};
 use cli_clap::{CliCommandOpts, RuntimeType};
-use config::load_cli_config_extract_from_car;
 #[allow(unused_imports)]
 use config::CliConfig;
+use config::load_cli_config_extract_from_car;
 use env_logger::Target;
 use error::CliExitCode;
-use log::{error, info, LevelFilter};
+use log::{LevelFilter, error, info};
 use std::fs;
 use std::path::Path;
 use std::process::exit;
@@ -279,12 +279,12 @@ mod test {
     use crate::config::load_cli_config_from_car;
     use blockless::ModuleType;
     use rust_car::{
+        Ipld,
         codec::Encoder,
         header::CarHeader,
         reader::{self, CarReader},
         unixfs::{Link, UnixFs},
         writer::{self as car_writer, CarWriter},
-        Ipld,
     };
 
     use super::*;
