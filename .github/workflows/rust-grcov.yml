@@ -22,13 +22,10 @@ jobs:
           components: rustfmt
 
       - name: Execute tests using nightly
-        run: |
-          rm ./rust-toolchain.toml
-          rustup default nightly
-          cargo test --all
+        run: cargo test --all --all-features
         env:
           CARGO_INCREMENTAL: 0
-          RUSTFLAGS: "-Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+          RUSTFLAGS: "-Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort"
 
       - name: Pre-installing grcov
         uses: actions-rs/install@v0.1
