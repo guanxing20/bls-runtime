@@ -17,12 +17,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install toolchain
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@1.85.0
         with:
           components: rustfmt
 
-      - name: Execute tests
+      - name: Execute tests using nightly
         run: |
+          rm ./rust-toolchain.toml
           rustup default nightly
           cargo test --all
         env:
