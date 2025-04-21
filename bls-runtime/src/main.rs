@@ -196,7 +196,7 @@ async fn wasm_runtime(mut cfg: CliConfig, cli_command_opts: CliCommandOpts) -> C
 fn set_root_path_env_var(cli_command_opts: &CliCommandOpts) {
     cli_command_opts
         .fs_root_path()
-        .map(|s| std::env::set_var(ENV_ROOT_PATH_NAME, s.as_str()));
+        .map(|s| unsafe { std::env::set_var(ENV_ROOT_PATH_NAME, s.as_str()) });
 }
 
 async fn non_blocking_read<R: Read + Send + 'static>(mut reader: R) -> Option<String> {
@@ -356,7 +356,7 @@ mod test {
         };
         write_car();
         let current_path = std::env::current_dir().unwrap();
-        std::env::set_var("ENV_ROOT_PATH", "target");
+        unsafe { std::env::set_var("ENV_ROOT_PATH", "target") };
         let input = std::io::Cursor::new(&mut buf);
         let mut car_reader = reader::new_v1(input).unwrap();
         let root_cid = car_reader.header().roots()[0];

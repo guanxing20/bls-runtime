@@ -123,7 +123,7 @@ pub(crate) async fn http_req(url: &str, opts: &str) -> Result<(u32, i32), HttpEr
 pub(crate) fn http_read_head(fd: u32, head: &str) -> Result<String, HttpErrorKind> {
     let ctx = get_ctx().unwrap();
     let respone = match ctx.get_mut(&fd) {
-        Some(HttpCtx::Response(ref h)) => h,
+        Some(HttpCtx::Response(h)) => h,
         Some(HttpCtx::StreamState(_)) => return Err(HttpErrorKind::RuntimeError),
         None => return Err(HttpErrorKind::InvalidHandle),
     };

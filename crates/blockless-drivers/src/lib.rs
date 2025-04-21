@@ -1,3 +1,4 @@
+#![allow(static_mut_refs)]
 mod cdylib_driver;
 pub mod cgi_driver;
 pub mod error;
