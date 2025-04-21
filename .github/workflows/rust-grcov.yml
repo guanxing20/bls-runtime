@@ -1,6 +1,9 @@
-on: [push, pull_request]
-
 name: Code coverage with grcov
+
+on:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   grcov:
@@ -16,7 +19,7 @@ jobs:
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@1.85.0
         with:
-          toolchain: stable
+          toolchain: nightly
           components: rustfmt
 
       - name: Execute tests
