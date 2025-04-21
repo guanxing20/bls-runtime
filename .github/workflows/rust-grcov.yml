@@ -21,7 +21,7 @@ jobs:
         with:
           components: rustfmt
 
-      - name: Execute tests using nightly
+      - name: Execute tests using
         run: cargo test --all --all-features
         env:
           CARGO_INCREMENTAL: 0
