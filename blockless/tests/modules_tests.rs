@@ -3,7 +3,10 @@ use std::fs;
 
 use common::run_blockless;
 use tempdir::TempDir;
-use wasi_common::{BlocklessConfig, BlocklessConfigVersion, BlocklessModule, ModuleType, PermissionGrant, PermissionsConfig};
+use wasi_common::{
+    BlocklessConfig, BlocklessConfigVersion, BlocklessModule, ModuleType, PermissionGrant,
+    PermissionsConfig,
+};
 
 #[test]
 fn test_linker_module() {
@@ -111,13 +114,13 @@ fn test_blockless_extension_http_req() {
     let mut config = BlocklessConfig::new("_start");
     config.set_version(BlocklessConfigVersion::Version1);
     config.set_modules(modules);
-    
+
     // Set network permissions to allow all to bypass the prompt
     config.permissions_config = PermissionsConfig {
         allow_net: Some(PermissionGrant::All),
         ..Default::default()
     };
-    
+
     let code = run_blockless(config).unwrap();
     assert_eq!(code.code, 0);
 }
