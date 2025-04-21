@@ -33,7 +33,6 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.85.0
         with:
-          toolchain: stable
           components: clippy
 
       - name: Install required cargo
