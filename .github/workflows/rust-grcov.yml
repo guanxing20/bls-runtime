@@ -39,11 +39,33 @@ jobs:
 
       - name: Execute tests for coverage
         run: |
-          CARGO_INCREMENTAL=0 RUSTFLAGS="-Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off" LLVM_PROFILE_FILE="coverage-%p-%m.profraw" cargo test --all --all-features
+          cargo test --all --all-features
+        env:
+          CARGO_INCREMENTAL: 0
+          RUSTFLAGS: "-Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Cinstrument-coverage"
+          LLVM_PROFILE_FILE: "coverage-%p-%m.profraw"
+
+      - name: Debug coverage files
+        run: |
+          echo "Listing all profraw files:"
+          find . -name "*.profraw" -ls || echo "No profraw files found"
+          echo "Checking target/debug directory:"
+          ls -la target/debug/deps/ || echo "No target/debug/deps directory"
 
       - name: Generate coverage report
         run: |
-          ./grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" --ignore "tests/*" --ignore "target/*" -o lcov.info
+          ./grcov . \
+            --binary-path ./target/debug/deps/ \
+            -s . \
+            -t lcov \
+            --branch \
+            --ignore-not-existing \
+            --ignore "/*" \
+            --ignore "tests/*" \
+            --ignore "target/*" \
+            --filter covered \
+            --llvm \
+            -o lcov.info
 
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2
