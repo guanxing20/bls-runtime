@@ -40,7 +40,7 @@ jobs:
           find target ! -name '*.o' ! -name "*.d" ! -name "*.a" ! -type d ! -name "*.rlib" ! -name "*.rmeta" ! -name "*.bin"
       - name: Gather coverage data
         id: coverage
-        uses: Joinhack/grcov@info
+        uses: Joinhack/grcov@master
         with:
           coveralls-token: ${{ secrets.COVERALLS_TOKEN }}
       - name: Coveralls upload
