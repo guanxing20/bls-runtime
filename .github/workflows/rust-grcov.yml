@@ -43,7 +43,6 @@ jobs:
         uses: Joinhack/grcov@info
         with:
           coveralls-token: ${{ secrets.COVERALLS_TOKEN }}
-
       - name: Coveralls upload
         uses: coverallsapp/github-action@master
         with:
