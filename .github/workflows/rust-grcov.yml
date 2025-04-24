@@ -16,7 +16,7 @@ jobs:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           override: true
           profile: minimal
 
@@ -28,7 +28,7 @@ jobs:
         env:
           CARGO_INCREMENTAL: 0
           LLVM_PROFILE_FILE: "run-%m.profraw"
-          RUSTFLAGS: "-Cinstrument-coverage  -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off"
+          RUSTFLAGS: "-Cinstrument-coverage  -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
 
       - name: Pre-installing grcov
         uses: actions-rs/install@v0.1
@@ -38,7 +38,6 @@ jobs:
       - name: grcov 
         id: coverage
         run: |
-
           grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing --ignore "/*" -o coverage.info
       - name: Coveralls upload
         uses: coverallsapp/github-action@master
