@@ -39,13 +39,13 @@ jobs:
         id: coverage
         run: |
           grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing --ignore "/*" -o coverage.info
-          echo `pwd`
+          echo "report=`pwd`/coverage.info" >> $GITHUB_OUTPUT
       - name: Coveralls upload
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
-          path-to-lcov: coverage.info
+          path-to-lcov:  ${{ steps.coverage.outputs.report }}
 
   grcov_finalize:
     runs-on: ubuntu-latest
