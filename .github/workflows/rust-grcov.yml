@@ -39,6 +39,7 @@ jobs:
         id: coverage
         run: |
           grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing --ignore "/*" -o coverage.info
+          echo `pwd`
       - name: Coveralls upload
         uses: coverallsapp/github-action@master
         with:
