@@ -18,7 +18,10 @@ jobs:
         with:
           override: true
           profile: minimal
-          components: llvm-tools-preview
+      
+      - name: Install dependencies
+        run: |
+          rustup component add llvm-tools-preview
 
       - name: Execute tests
         uses: actions-rs/cargo@v1
