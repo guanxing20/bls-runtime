@@ -16,12 +16,9 @@ jobs:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
+          toolchain: stable
           override: true
           profile: minimal
-      
-      - name: Install dependencies
-        run: |
-          rustup component add llvm-tools-preview
 
       - name: Execute tests
         uses: actions-rs/cargo@v1
