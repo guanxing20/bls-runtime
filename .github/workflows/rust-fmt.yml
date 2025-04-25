@@ -21,7 +21,10 @@ jobs:
           components: rustfmt
       - run: rustup override set nightly
       - run: cargo fmt --all -- --check
-      - run: rustup component add clippy
+      - uses: dtolnay/rust-toolchain@1.85
+        with:
+          components: rustfmt
+      - run: rustup override set 1.85
       - run: cargo clippy --all-features --all-targets -- -D warnings
       - run: cargo check --release --all --all-features
       - run: cargo test --all --all-features
