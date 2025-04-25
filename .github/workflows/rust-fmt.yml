@@ -16,10 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@nightly-2024-12-17
         with:
           components: rustfmt
-      - run: rustup override set nightly
+      - run: rustup override set nightly-2024-12-17
       - run: cargo fmt --all -- --check
       - uses: dtolnay/rust-toolchain@1.85
         with:
