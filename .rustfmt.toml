@@ -1,3 +1,4 @@
+edition = "2024"
 ignore = [
-    "crates/wasi-common/**/*.rs", 
+    "crates/wasi-common", 
 ]
