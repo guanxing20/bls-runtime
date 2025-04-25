@@ -1,14 +1,14 @@
 use crate::{
-    I32Exit, SystemTimeSpec, WasiCtx,
     dir::{DirEntry, OpenResult, ReaddirCursor, ReaddirEntity, TableDirExt},
     file::{
         Advice, FdFlags, FdStat, FileAccessMode, FileEntry, FileType, Filestat, OFlags, RiFlags,
         RoFlags, SdFlags, SiFlags, TableFileExt, WasiFile,
     },
     sched::{
-        Poll, Userdata,
         subscription::{RwEventFlags, SubscriptionResult},
+        Poll, Userdata,
     },
+    I32Exit, SystemTimeSpec, WasiCtx,
 };
 use cap_std::time::{Duration, SystemClock};
 use std::io::{IoSlice, IoSliceMut};
@@ -228,9 +228,7 @@ impl wasi_snapshot_preview1::WasiSnapshotPreview1 for WasiCtx {
                 .set_fdflags(FdFlags::from(flags))
                 .await
         } else {
-            log::warn!(
-                "`fd_fdstat_set_flags` does not work with wasi-threads enabled; see https://github.com/bytecodealliance/wasmtime/issues/5643"
-            );
+            log::warn!("`fd_fdstat_set_flags` does not work with wasi-threads enabled; see https://github.com/bytecodealliance/wasmtime/issues/5643");
             Err(Error::not_supported())
         }
     }
@@ -566,7 +564,7 @@ impl wasi_snapshot_preview1::WasiSnapshotPreview1 for WasiCtx {
     ) -> Result<types::Prestat, Error> {
         let table = self.table();
         let dir_entry: Arc<DirEntry> = table.get(u32::from(fd)).map_err(|_| Error::badf())?;
-        if let Some(preopen) = dir_entry.preopen_path() {
+        if let Some(ref preopen) = dir_entry.preopen_path() {
             let path_str = preopen.to_str().ok_or_else(|| Error::not_supported())?;
             let pr_name_len = u32::try_from(path_str.as_bytes().len())?;
             Ok(types::Prestat::Dir(types::PrestatDir { pr_name_len }))
@@ -584,7 +582,7 @@ impl wasi_snapshot_preview1::WasiSnapshotPreview1 for WasiCtx {
     ) -> Result<(), Error> {
         let table = self.table();
         let dir_entry: Arc<DirEntry> = table.get(u32::from(fd)).map_err(|_| Error::not_dir())?;
-        if let Some(preopen) = dir_entry.preopen_path() {
+        if let Some(ref preopen) = dir_entry.preopen_path() {
             let path_bytes = preopen
                 .to_str()
                 .ok_or_else(|| Error::not_supported())?

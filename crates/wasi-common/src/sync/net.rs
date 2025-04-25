@@ -1,6 +1,6 @@
 use crate::{
-    Error, ErrorExt,
     file::{FdFlags, FileType, RiFlags, RoFlags, SdFlags, SiFlags, WasiFile},
+    Error, ErrorExt,
 };
 #[cfg(windows)]
 use io_extras::os::windows::{AsRawHandleOrSocket, RawHandleOrSocket};
@@ -225,11 +225,19 @@ macro_rules! wasi_stream_write_impl {
             }
             async fn readable(&self) -> Result<(), Error> {
                 let (readable, _writeable) = is_read_write(&self.0)?;
-                if readable { Ok(()) } else { Err(Error::io()) }
+                if readable {
+                    Ok(())
+                } else {
+                    Err(Error::io())
+                }
             }
             async fn writable(&self) -> Result<(), Error> {
                 let (_readable, writeable) = is_read_write(&self.0)?;
-                if writeable { Ok(()) } else { Err(Error::io()) }
+                if writeable {
+                    Ok(())
+                } else {
+                    Err(Error::io())
+                }
             }
 
             async fn sock_recv<'a>(
