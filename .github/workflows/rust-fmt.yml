@@ -19,7 +19,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
-      - run: cargo fmt --all -- --check
-      - run: cargo clippy --all-features --all-targets -- -D warnings
-      - run: cargo check --release --all --all-features
-      - run: cargo test --all --all-features
+      - run: |
+        rustup override set nightly
+        cargo fmt --all -- --check
+        cargo clippy --all-features --all-targets -- -D warnings
+        cargo check --release --all --all-features
+        cargo test --all --all-features
