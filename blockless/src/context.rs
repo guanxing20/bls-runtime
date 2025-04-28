@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use wasi_common::PermissionsConfig;
 use wasmtime::StoreLimits;
 use wasmtime_wasi::preview1::WasiP1Ctx;
+use wasmtime_wasi::IoView;
 use wasmtime_wasi_threads::WasiThreadsCtx;
 
 #[derive(Clone, Default)]
@@ -36,11 +37,13 @@ impl BlocklessContext {
     }
 }
 
-impl wasmtime_wasi::WasiView for BlocklessContext {
+impl IoView for BlocklessContext {
     fn table(&mut self) -> &mut wasmtime::component::ResourceTable {
         self.preview2_ctx().table()
     }
+}
 
+impl wasmtime_wasi::WasiView for BlocklessContext {
     fn ctx(&mut self) -> &mut wasmtime_wasi::WasiCtx {
         self.preview2_ctx().ctx()
     }

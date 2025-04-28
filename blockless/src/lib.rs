@@ -21,7 +21,7 @@ use wasmtime::{
     Config, Engine, Linker, Module, Precompiled, Store, StoreLimits, StoreLimitsBuilder, Trap,
     component::Component,
 };
-use wasmtime_wasi::WasiView;
+use wasmtime_wasi::IoView;
 use wasmtime_wasi::{DirPerms, FilePerms};
 use wasmtime_wasi_nn::wit::WasiNnView;
 use wasmtime_wasi_threads::WasiThreadsCtx;
