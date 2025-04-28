@@ -32,7 +32,7 @@ jobs:
             cross: false
     runs-on: ${{ matrix.runson }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Get release
         id: get_release
         uses: bruceadams/get-release@v1.3.2

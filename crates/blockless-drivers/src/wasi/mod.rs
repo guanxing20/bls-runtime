@@ -11,8 +11,8 @@ use crate::ErrorKind;
 use crate::{Driver, DriverConetxt};
 // pub use guest_ptr::ArrayTuple;
 use std::sync::Arc;
-use wasi_common::file::{FileAccessMode, FileEntry};
 use wasi_common::WasiCtx;
+use wasi_common::file::{FileAccessMode, FileEntry};
 use wiggle::{GuestMemory, GuestPtr};
 
 wiggle::from_witx!({

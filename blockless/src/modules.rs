@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use json::JsonValue;
 use lazy_static::lazy_static;
 use std::future::Future;
@@ -61,8 +61,7 @@ impl InstanceInfo {
 
         let mem = self
             .mem
-            .ok_or(anyhow::anyhow!("memory is not exported in module."))?
-            .clone();
+            .ok_or(anyhow::anyhow!("memory is not exported in module."))?;
         let alloc = self
             .alloc
             .as_ref()
@@ -130,11 +129,11 @@ impl<'a> MemBuf<'a> {
 
 impl InstanceCaller {
     /// call the module function which registered
-    async fn call<'a>(
+    async fn call(
         &self,
         mut store: impl AsContextMut<Data = BSContext>,
         param: &str,
-        caller_mem: MemBuf<'a>,
+        caller_mem: MemBuf<'_>,
     ) -> u32 {
         let mut result = McallError::None;
         let params_bs = param.as_bytes();
@@ -163,7 +162,7 @@ impl InstanceCaller {
             }
         };
         let param_buf = MemBuf::new(&self.mem, ptr as u32, params_len);
-        param_buf.copy_from_slice(store.as_context_mut(), &params_bs);
+        param_buf.copy_from_slice(store.as_context_mut(), params_bs);
         let rs = self
             .func
             .call_async(
@@ -172,7 +171,7 @@ impl InstanceCaller {
             )
             .await;
         if rs.is_err() {
-            result = McallError::MCallError.into();
+            result = McallError::MCallError;
         } else {
             let result_mem = MemBuf::new(&self.mem, caller_result_ptr as u32, caller_result_len);
             caller_mem.copy_from(store.as_context_mut(), &result_mem);
@@ -304,16 +303,14 @@ impl<'a> ModuleLinker<'a> {
                 let (mcall_name, params) = match Self::parse_mcall(json_str) {
                     Ok((n, k)) => (n, k),
                     Err(e) => {
-                        let emsg = format!("error parse json: {}", e.to_string());
+                        let emsg = format!("error parse json: {}", e);
                         responseError!(&emsg);
                     }
                 };
                 let ctx = INS_CTX.lock().await;
                 let mcaller = ctx.module_caller.get(&mcall_name);
-                let mcaller = if mcaller.is_none() {
+                let Some(mcaller) = mcaller else {
                     responseError!("no mcall register.");
-                } else {
-                    mcaller.unwrap()
                 };
                 let dest_mem = MemBuf::new(&mem, buf, buf_len);
                 return mcaller
@@ -375,7 +372,7 @@ impl<'a> ModuleLinker<'a> {
                     let caller = match caller {
                         Ok(c) => c,
                         Err(e) => {
-                            let e = format!("caller instance fail, {}", e.to_string());
+                            let e = format!("caller instance fail, {}", e);
                             responseError!(&e);
                         }
                     };
@@ -507,7 +504,7 @@ impl<'a> ModuleLinker<'a> {
             alloc,
             export_funcs: funcs,
             dealloc,
-            mem: mem,
+            mem,
         };
         //must release the lock, the initial method will access the modules.
         INS_CTX

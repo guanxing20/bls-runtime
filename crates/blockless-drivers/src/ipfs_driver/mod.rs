@@ -105,7 +105,7 @@ pub async fn read_body(handle: u32, buf: &mut [u8]) -> Result<u32, IpfsErrorKind
             }
             Ok(0)
         }
-        _ => return Err(IpfsErrorKind::InvalidHandle),
+        _ => Err(IpfsErrorKind::InvalidHandle),
     }
 }
 
@@ -174,6 +174,6 @@ async fn inner_command(cmd: &str) -> Result<ApiCtx, IpfsErrorKind> {
             .write(args)
             .await
             .map(ApiCtx::HttpRaw),
-        _ => return Err(IpfsErrorKind::InvalidMethod),
+        _ => Err(IpfsErrorKind::InvalidMethod),
     }
 }

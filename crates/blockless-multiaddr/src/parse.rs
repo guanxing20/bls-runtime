@@ -44,13 +44,10 @@ pub fn parse(address: &[u8]) -> Result<MultiAddr, Error> {
     let mut token: Status = Status::None;
     let mut paths = Vec::new();
     let addr_b = address.as_ptr();
-    loop {
-        let (c, c_off) = match addr.next() {
-            Some(c) => unsafe {
-                let c_ptr = c as *const u8;
-                (c, c_ptr.offset_from(addr_b) as usize)
-            },
-            None => break,
+    while let Some(c) = addr.next() {
+        let c_off = unsafe {
+            let c_ptr = c as *const u8;
+            c_ptr.offset_from(addr_b) as usize
         };
         if !is_addr_token(*c) {
             return Err(Error::InvalidToken);

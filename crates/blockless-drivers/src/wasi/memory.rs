@@ -1,5 +1,5 @@
 #![allow(non_upper_case_globals)]
-use crate::{memory_driver, BlocklessMemoryErrorKind};
+use crate::{BlocklessMemoryErrorKind, memory_driver};
 use std::env;
 use wasi_common::WasiCtx;
 use wiggle::{GuestMemory, GuestPtr};
@@ -77,7 +77,7 @@ impl blockless_memory::BlocklessMemory for WasiCtx {
             owned_string.push_str(&format!("\"{}\": \"{}\",", s, env_var));
         }
         owned_string.pop();
-        owned_string.push_str("}");
+        owned_string.push('}');
         let mut dest_buf = vec![0; buf_len as _];
         let rs = memory_driver::read(&mut dest_buf, owned_string).await?;
         if rs > 0 {

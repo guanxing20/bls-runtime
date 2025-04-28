@@ -1,7 +1,7 @@
-#![allow(non_upper_case_globals)]
+#![allow(non_upper_case_globals, clippy::too_many_arguments)]
 use std::str::FromStr;
 
-use crate::{http_driver, HttpErrorKind};
+use crate::{HttpErrorKind, http_driver};
 use log::error;
 use url::Url;
 use wasi_common::WasiCtx;
@@ -151,7 +151,6 @@ impl blockless_http::BlocklessHttp for WasiCtx {
             })?
             .unwrap();
         let mut dest_buf = vec![0; buf_len as _];
-        let buf = buf;
         let rs = http_driver::http_read_head(handle.into(), head, &mut dest_buf[..]).await?;
         memory
             .copy_from_slice(&dest_buf[0..rs as _], buf.as_array(rs))
@@ -167,7 +166,6 @@ impl blockless_http::BlocklessHttp for WasiCtx {
         buf_len: u32,
     ) -> Result<u32, HttpErrorKind> {
         let mut dest_buf = vec![0; buf_len as _];
-        let buf = buf;
         let rs = http_driver::http_read_body(handle.into(), &mut dest_buf[..]).await?;
         if rs > 0 {
             memory

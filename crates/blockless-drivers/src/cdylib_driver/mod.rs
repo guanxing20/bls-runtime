@@ -1,6 +1,6 @@
 mod driver_api;
 mod driver_wasi_file;
-use crate::{multiaddr, Driver, ErrorKind};
+use crate::{Driver, ErrorKind, multiaddr};
 use anyhow::Result;
 use dlopen::raw::Library;
 use driver_api::DriverApi;

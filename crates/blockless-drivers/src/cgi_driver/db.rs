@@ -7,7 +7,7 @@ use rusqlite::{Connection, OptionalExtension};
 pub(crate) enum ExtensionMetaStatus {
     #[default]
     Normal = 0,
-    UPDATE = 1,
+    Update = 1,
     Invalid = -1,
 }
 
@@ -15,7 +15,7 @@ impl From<i32> for ExtensionMetaStatus {
     fn from(value: i32) -> Self {
         match value {
             0 => ExtensionMetaStatus::Normal,
-            1 => ExtensionMetaStatus::UPDATE,
+            1 => ExtensionMetaStatus::Update,
             -1 => ExtensionMetaStatus::Invalid,
             _ => ExtensionMetaStatus::Invalid,
         }
@@ -114,7 +114,7 @@ impl DB {
         for meta in exts.iter() {
             match meta.status {
                 ExtensionMetaStatus::Normal => self.insert_extension_meta(meta),
-                ExtensionMetaStatus::UPDATE => self.update_extension_meta(meta),
+                ExtensionMetaStatus::Update => self.update_extension_meta(meta),
                 ExtensionMetaStatus::Invalid => self.delete_extension_meta(meta),
             }?;
         }
@@ -195,13 +195,13 @@ mod test {
         assert_eq!(rs[0].file_name, file_name);
         assert_eq!(rs[0].alias, alias);
         let rs = db.get_extension_by_alias(&alias)?;
-        rs.map(|rs| {
+        if let Some(rs) = rs {
             assert_eq!(rs.id, 1);
             assert_eq!(rs.description, description);
             assert_eq!(rs.md5, md5);
             assert_eq!(rs.file_name, file_name);
             assert_eq!(rs.alias, alias);
-        });
+        }
         Ok(())
     }
 }

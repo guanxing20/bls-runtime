@@ -15,11 +15,11 @@ use bls_permissions::Permissions as BlsPermissions;
 use bls_permissions::RunQueryDescriptor;
 use bls_permissions::Url;
 
-use super::init_tty_prompter;
 use super::EnvCurrentDir;
 use super::PermissionGrant;
 use super::PermissionsConfig;
 use super::RuntimePermissionDescriptorParser;
+use super::init_tty_prompter;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Permission {

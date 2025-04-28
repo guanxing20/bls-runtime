@@ -1,5 +1,5 @@
 #![allow(non_upper_case_globals)]
-use crate::{s3_driver, S3ErrorKind};
+use crate::{S3ErrorKind, s3_driver};
 use log::error;
 use wasi_common::WasiCtx;
 use wiggle::{GuestMemory, GuestPtr};

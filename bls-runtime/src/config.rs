@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use blockless::{
     self, BlocklessModule, LoggerLevel, ModuleType, OptimizeOpts, Stderr, Stdin, Stdio, Stdout,
 };
@@ -16,15 +16,15 @@ use crate::v86config::V86config;
 pub(crate) struct CliConfig(pub(crate) BlocklessConfig);
 
 pub(crate) enum Config {
-    CliConfig(CliConfig),
+    CliConfig(Box<CliConfig>),
     V86config(V86config),
 }
 
 impl Config {
     fn root_path(&self) -> Option<&str> {
         match self {
-            Config::CliConfig(c) => c.0.fs_root_path_ref(),
-            Config::V86config(c) => Some(&c.fs_root_path),
+            Config::CliConfig(config) => config.0.fs_root_path_ref(),
+            Config::V86config(config) => Some(&config.fs_root_path),
         }
     }
 }
@@ -53,9 +53,9 @@ impl CliConfig {
         let mut bconf = BlocklessConfig::new(file_path.to_str().unwrap());
         bconf.set_fs_root_path(Some(".".to_string()));
         bconf.set_runtime_logger_level(LoggerLevel::WARN);
-        log_file.as_ref().map(|log_file| {
+        if let Some(log_file) = log_file.as_ref() {
             bconf.set_runtime_logger(Some(format!("{log_file}.log")));
-        });
+        }
         CliConfig(bconf)
     }
 
@@ -99,22 +99,18 @@ impl CliConfig {
                     match p {
                         Some(p) => {
                             let bs = p.as_bytes();
-                            let addr = MultiAddr::parse(bs);
-                            let addr = if addr.is_ok() {
-                                addr.unwrap()
+                            if let Ok(addr) = MultiAddr::parse(bs) {
+                                if let Ok(schema) = addr.schema() {
+                                    Some(Permission {
+                                        schema: schema.into(),
+                                        url: p.into(),
+                                    })
+                                } else {
+                                    None
+                                }
                             } else {
-                                return None;
-                            };
-                            let schema = addr.schema();
-                            let schema = if schema.is_ok() {
-                                schema.unwrap()
-                            } else {
-                                return None;
-                            };
-                            Some(Permission {
-                                schema: schema.into(),
-                                url: p.into(),
-                            })
+                                None
+                            }
                         }
                         None => None,
                     }
@@ -153,7 +149,7 @@ impl CliConfig {
                     let md5 = c["md5"].as_str().map(String::from).unwrap_or_default();
                     let module_type = c["type"]
                         .as_str()
-                        .map(|s| ModuleType::parse_from_str(s))
+                        .map(ModuleType::parse_from_str)
                         .unwrap_or(ModuleType::Module);
                     BlocklessModule {
                         module_type,
@@ -203,15 +199,21 @@ impl CliConfig {
         bc.set_fs_root_path(fs_root_path);
         bc.drivers(drvs);
         // the set debug mode
-        debug_info.map(|b| bc.set_debug_info(b));
-        runtime_logger_level.map(|l| bc.set_runtime_logger_level(l));
+        if let Some(b) = debug_info {
+            bc.set_debug_info(b);
+        }
+        if let Some(l) = runtime_logger_level {
+            bc.set_runtime_logger_level(l);
+        }
         bc.set_permisions(perms);
         bc.set_runtime_logger(runtime_logger);
         bc.set_drivers_root_path(drivers_root_path);
         bc.limited_fuel(limited_fuel);
         bc.limited_memory(limited_memory);
         bc.set_run_time(run_time);
-        version.map(|v| bc.set_version(v.into()));
+        if let Some(v) = version {
+            bc.set_version(v.into());
+        }
         let stdin = match stdin {
             Some(s) => {
                 if s == "inherit" {
@@ -284,18 +286,18 @@ where
     ipld_write(car_reader, cid, &mut data)?;
     let raw_json = String::from_utf8(data)?;
     let roots = car_reader.header().roots();
-    let root_suffix = roots.iter().nth(0).map(|c| c.to_string());
+    let root_suffix = roots.first().map(|c| c.to_string());
     call(raw_json, root_suffix)
 }
 
-#[allow(dead_code)]
+#[cfg(test)]
 pub(crate) fn load_cli_config_from_car<T>(car_reader: &mut T) -> Result<CliConfig>
 where
     T: CarReader,
 {
     let rs = load_from_car(car_reader, new_cliconfig);
     rs.map(|r| match r {
-        Config::CliConfig(c) => c,
+        Config::CliConfig(c) => *c,
         _ => unreachable!("can be reach!"),
     })
 }
@@ -326,13 +328,13 @@ where
 fn new_cliconfig(raw_json: String, root_suffix: Option<String>) -> Result<Config> {
     let mut cli_cfg = CliConfig::from_data(raw_json, root_suffix)?;
     cli_cfg.0.set_is_carfile(true);
-    Ok(Config::CliConfig(cli_cfg))
+    Ok(Config::CliConfig(Box::new(cli_cfg)))
 }
 
 pub(crate) fn load_cli_config_extract_from_car(f: File) -> Result<CliConfig> {
     let rs = load_extract_from_car(f, new_cliconfig);
     rs.map(|r| match r {
-        Config::CliConfig(c) => c,
+        Config::CliConfig(c) => *c,
         _ => unreachable!("can be reach!"),
     })
 }
@@ -405,7 +407,9 @@ mod test {
         }"#
         .to_string();
 
-        std::env::set_var("ENV_ROOT_PATH", "target");
+        unsafe {
+            std::env::set_var("ENV_ROOT_PATH", "target");
+        }
         let config = CliConfig::from_data(data, None).unwrap();
         assert!(matches!(
             config.0.version(),

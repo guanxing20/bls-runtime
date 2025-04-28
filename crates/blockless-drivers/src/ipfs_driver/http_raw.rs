@@ -22,7 +22,7 @@ impl HttpRaw {
     pub fn from_url(url: &str) -> Result<HttpRaw, IpfsErrorKind> {
         let url = Url::parse(url).map_err(|_| IpfsErrorKind::InvalidParameter)?;
         Ok(HttpRaw {
-            url: url,
+            url,
             method: "GET".into(),
             boundary: None,
             header: HashMap::new(),
@@ -36,8 +36,8 @@ impl HttpRaw {
 
     pub fn insert_header(&mut self, key: String, value: String) {
         let entry = self.header.get_mut(&key);
-        if entry.is_some() {
-            entry.map(|v| v.push(value));
+        if let Some(v) = entry {
+            v.push(value);
         } else {
             self.header.insert(key, vec![value]);
         }
@@ -50,21 +50,17 @@ impl HttpRaw {
     fn header_raw(&self) -> Vec<u8> {
         let mut buf = Vec::with_capacity(1024);
         let mut headers = HashMap::<String, Vec<String>>::with_capacity(1024);
-        self.url.host_str().map(|h| {
-            let mut host = format!("{}", h);
-            self.url.port_or_known_default().map(|p| {
+        if let Some(h) = self.url.host_str() {
+            let mut host = h.to_string();
+            if let Some(p) = self.url.port_or_known_default() {
                 host += &format!(":{}", p);
-            });
+            }
             headers.insert("Host".into(), vec![host]);
-        });
+        }
         headers.insert("Accept".into(), vec!["*/*".into()]);
-        headers.extend(
-            self.header
-                .iter()
-                .map(|(k, v)| (k.clone(), v.iter().map(|i| i.clone()).collect())),
-        );
-        let _ = headers.iter().for_each(|(k, v)| {
-            let _ = v.iter().for_each(|i| {
+        headers.extend(self.header.iter().map(|(k, v)| (k.clone(), v.to_vec())));
+        headers.iter().for_each(|(k, v)| {
+            v.iter().for_each(|i| {
                 buf.write_all(format!("{}: {}", k, i).as_bytes()).unwrap();
                 buf.write_all(EOL).unwrap();
             });
@@ -219,10 +215,10 @@ impl HttpRaw {
         buf.write_all(self.method.as_bytes()).unwrap();
         buf.write_all(b" ").unwrap();
         buf.write_all(self.url.path().as_bytes()).unwrap();
-        self.url.query().map(|q| {
+        if let Some(q) = self.url.query() {
             buf.write_all(b"?").unwrap();
             buf.write_all(q.as_bytes()).unwrap();
-        });
+        }
         buf.write_all(b" ").unwrap();
         buf.write_all(HTTP1).unwrap();
         buf.write_all(EOL).unwrap();
@@ -237,7 +233,7 @@ impl HttpRaw {
             .url
             .socket_addrs(|| Some(5001))
             .map_err(|_| IpfsErrorKind::InvalidParameter)?;
-        if addr.len() < 1 {
+        if addr.is_empty() {
             return Err(IpfsErrorKind::InvalidParameter);
         }
         let mut stream = TcpStream::connect(addr[0])

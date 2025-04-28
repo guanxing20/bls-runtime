@@ -16,9 +16,10 @@ jobs:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2024-07-25
+          toolchain: nightly
           override: true
           profile: minimal
+          components: llvm-tools-preview 
 
       - name: Execute tests
         uses: actions-rs/cargo@v1
@@ -27,26 +28,25 @@ jobs:
           args: --all
         env:
           CARGO_INCREMENTAL: 0
-          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+          LLVM_PROFILE_FILE: "run-%m.profraw"
+          RUSTFLAGS: "-Cinstrument-coverage  -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
 
       - name: Pre-installing grcov
         uses: actions-rs/install@v0.1
         with:
           crate: grcov
           use-tool-cache: true
-
-      - name: Gather coverage data
+      - name: grcov 
         id: coverage
-        uses: actions-rs/grcov@v0.1
-        with:
-          coveralls-token: ${{ secrets.COVERALLS_TOKEN }}
-
+        run: |
+          grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing --ignore "/*" -o coverage.info
+          echo "report=`pwd`/coverage.info" >> $GITHUB_OUTPUT
       - name: Coveralls upload
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
-          path-to-lcov: ${{ steps.coverage.outputs.report }}
+          path-to-lcov:  ${{ steps.coverage.outputs.report }}
 
   grcov_finalize:
     runs-on: ubuntu-latest

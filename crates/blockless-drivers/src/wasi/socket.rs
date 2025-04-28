@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use wasi_common::{
+    WasiCtx, WasiFile,
     file::{FileAccessMode, FileEntry},
     sync::net::Socket,
-    WasiCtx, WasiFile,
 };
 
 use crate::BlocklessSocketErrorKind;
@@ -85,7 +85,7 @@ impl blockless_socket::BlocklessSocket for WasiCtx {
             .map_err(|_| BlocklessSocketErrorKind::ParameterError)?
             .unwrap();
         let mode = FileAccessMode::READ | FileAccessMode::WRITE;
-        match tcp_bind(&addr)
+        match tcp_bind(addr)
             .await
             .map(|f| Arc::new(FileEntry::new(f, mode)))
         {
@@ -108,7 +108,7 @@ impl blockless_socket::BlocklessSocket for WasiCtx {
             .map_err(|_| BlocklessSocketErrorKind::ParameterError)?
             .unwrap();
         let mode = FileAccessMode::READ | FileAccessMode::WRITE;
-        match tcp_connect(&addr)
+        match tcp_connect(addr)
             .await
             .map(|f| Arc::new(FileEntry::new(f, mode)))
         {
