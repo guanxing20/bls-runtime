@@ -1,12 +1,12 @@
 #![allow(unused)]
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use blockless::{
     BlocklessConfig, BlocklessModule, BlsNnGraph, BlsOptions, ModuleType, OptimizeOpts,
     OptionParser, Permission, PermissionGrant, PermissionsConfig, Stderr, Stdin, Stdout,
 };
 use clap::{
-    builder::{TypedValueParser, ValueParser},
     Arg, ArgMatches, Command, Parser,
+    builder::{TypedValueParser, ValueParser},
 };
 use std::{
     collections::HashMap,
@@ -50,23 +50,18 @@ const PERMISSION_HELP: &str = "The permissions for app";
 
 const MODULES_HELP: &str = "The modules used by app";
 
-const STDOUT_HELP: &str =
-    "The app's stdout setting, which can be configured to one of the following values: inherit, null, or a specific file name.";
+const STDOUT_HELP: &str = "The app's stdout setting, which can be configured to one of the following values: inherit, null, or a specific file name.";
 
-const STDERR_HELP: &str =
-    "The app's stderr setting, which can be configured to one of the following values: inherit, null, or a specific file name";
+const STDERR_HELP: &str = "The app's stderr setting, which can be configured to one of the following values: inherit, null, or a specific file name";
 
-const STDIN_HELP: &str =
-    "The app's stdin setting, which can be configured to one of the following values: inherit or a fixed input string.";
+const STDIN_HELP: &str = "The app's stdin setting, which can be configured to one of the following values: inherit or a fixed input string.";
 
-const MAP_DIR_HELP: &str =
-    "Grant access to a host directory for a guest. If specified as HOST_DIR, the corresponding directory on the host will be made available within the guest.";
+const MAP_DIR_HELP: &str = "Grant access to a host directory for a guest. If specified as HOST_DIR, the corresponding directory on the host will be made available within the guest.";
 
 const V86_HELP: &str =
     "V86 model flag when the v86 flag the car file must be v86 configure and image.";
 
-const THREAD_SUPPORT_HELP: &str =
-    "Enables multi-threading in the runtime. When set, the runtime can spawn threads, allowing concurrent task execution for improved performance and scalability.";
+const THREAD_SUPPORT_HELP: &str = "Enables multi-threading in the runtime. When set, the runtime can spawn threads, allowing concurrent task execution for improved performance and scalability.";
 
 const TCP_LISTEN_HELP: &str = "Grant access to the given TCP listen socket. ";
 
@@ -82,8 +77,7 @@ const MAX_MEMORY_SIZE_HELP: &str = "The max memory size limited.";
 
 const NN_HELP: &str = "Enable support for WASI neural network imports .";
 
-const NN_GRAPH_HELP: &str =
-    "Pre-load machine learning graphs (i.e., models) for use by wasi-nn.  \
+const NN_GRAPH_HELP: &str = "Pre-load machine learning graphs (i.e., models) for use by wasi-nn.  \
 Each use of the flag will preload a ML model from the host directory using the given model encoding";
 
 const ALLOW_READ_HELP: &str = "Allow the app to read permissions.";
@@ -123,26 +117,24 @@ fn parse_nn_graph(envs: &str) -> Result<BlsNnGraph> {
 
 fn parse_opts(opt: &str) -> Result<OptimizeOpts> {
     let kvs: Vec<_> = opt.splitn(2, ",").collect();
-    if kvs.len() == 1 {
-        if kvs[0] == "help" {
-            let mut max = 0;
-            let options = OptimizeOpts::OPTIONS;
-            for d in options {
-                max = max.max(d.opt_name.len() + d.opt_docs.len());
-            }
-            for d in options {
-                print!("   -O     {}", d.opt_name);
-                print!(" --");
-                for line in d.opt_docs.lines().map(|s| s.trim()) {
-                    if line.is_empty() {
-                        break;
-                    }
-                    print!(" {line}");
-                }
-                println!();
-            }
-            std::process::exit(0);
+    if kvs.len() == 1 && kvs[0] == "help" {
+        let mut max = 0;
+        let options = OptimizeOpts::OPTIONS;
+        for d in options {
+            max = max.max(d.opt_name.len() + d.opt_docs.len());
         }
+        for d in options {
+            print!("   -O     {}", d.opt_name);
+            print!(" --");
+            for line in d.opt_docs.lines().map(|s| s.trim()) {
+                if line.is_empty() {
+                    break;
+                }
+                print!(" {line}");
+            }
+            println!();
+        }
+        std::process::exit(0);
     }
     let mut parsed = vec![];
     for kv in kvs.iter() {
@@ -202,13 +194,13 @@ fn parse_listen(s: &str) -> Result<(SocketAddr, Option<u32>)> {
     let saddrs = splitn.collect::<Vec<_>>();
     if saddrs.len() < 2 {
         let addrs = s.to_socket_addrs()?;
-        for addr in addrs {
+        if let Some(addr) = addrs.into_iter().next() {
             return Ok((addr, None));
         }
     } else {
         let port: u32 = saddrs[1].parse()?;
         let addrs = saddrs[0].to_socket_addrs()?;
-        for addr in addrs {
+        if let Some(addr) = addrs.into_iter().next() {
             return Ok((addr, Some(port)));
         }
     }
@@ -255,18 +247,17 @@ pub struct PermissionFlags {
     pub allow_all: bool,
 }
 
-impl Into<PermissionsConfig> for PermissionFlags {
-    fn into(self) -> PermissionsConfig {
-        let mut permissions = PermissionsConfig {
-            allow_read: self.allow_read,
-            deny_read: self.deny_read,
-            allow_write: self.allow_write,
-            deny_write: self.deny_write,
-            deny_net: self.deny_net,
-            allow_net: self.allow_net,
-            allow_all: self.allow_all,
-        };
-        permissions
+impl From<PermissionFlags> for PermissionsConfig {
+    fn from(val: PermissionFlags) -> Self {
+        PermissionsConfig {
+            allow_read: val.allow_read,
+            deny_read: val.deny_read,
+            allow_write: val.allow_write,
+            deny_write: val.deny_write,
+            deny_net: val.deny_net,
+            allow_net: val.allow_net,
+            allow_all: val.allow_all,
+        }
     }
 }
 
@@ -456,7 +447,7 @@ impl CliCommandOpts {
         if let Some(stdin) = self.stdio.stdin {
             conf.0.stdio.stdin(stdin);
         }
-        if self.permissions.len() > 0 {
+        if !self.permissions.is_empty() {
             conf.0.set_permisions(self.permissions);
         }
 
@@ -466,11 +457,11 @@ impl CliCommandOpts {
         conf.0.set_drivers_root_path(self.drivers_root_path);
         let mut modules = self.modules;
         let mut has_entry = false;
-        self.entry.map(|e| {
+        if let Some(e) = self.entry {
             has_entry = true;
-            conf.0.set_entry(e)
-        });
-        if modules.len() > 0 {
+            conf.0.set_entry(e);
+        }
+        if !modules.is_empty() {
             modules.push(BlocklessModule {
                 module_type: ModuleType::Entry,
                 name: String::new(),
@@ -538,7 +529,7 @@ mod test {
     #[test]
     fn test_cli_command_v86() {
         let cli = CliCommandOpts::try_parse_from(["cli", "test", "--v86"]).unwrap();
-        assert_eq!(cli.v86, true);
+        assert!(cli.v86);
     }
 
     #[test]

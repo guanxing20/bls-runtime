@@ -7,9 +7,7 @@ pub async fn read(buf: &mut [u8], string: String) -> Result<u32, BlocklessMemory
         return Err(BlocklessMemoryErrorKind::InvalidParameter);
     }
 
-    for n in 0..(bytes.len()) {
-        buf[n] = bytes[n];
-    }
+    buf[..(bytes.len())].copy_from_slice(bytes);
 
     Ok(bytes.len() as u32)
 }

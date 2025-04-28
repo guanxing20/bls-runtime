@@ -1,7 +1,7 @@
 mod bucket;
 use std::{collections::HashMap, sync::Once};
 
-use crate::{read_ext::ReadRemain, S3ErrorKind};
+use crate::{S3ErrorKind, read_ext::ReadRemain};
 
 pub struct VecResult {
     content: Vec<u8>,
@@ -98,6 +98,6 @@ pub async fn read(handle: u32, buf: &mut [u8]) -> Result<u32, S3ErrorKind> {
     }
     match ctx.get_mut(&handle) {
         Some(S3Ctx::VecResult(resp)) => Ok(resp.copy_remain(buf) as _),
-        _ => return Err(S3ErrorKind::InvalidHandle),
+        _ => Err(S3ErrorKind::InvalidHandle),
     }
 }

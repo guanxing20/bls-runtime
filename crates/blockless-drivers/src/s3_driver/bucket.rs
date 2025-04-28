@@ -1,5 +1,5 @@
 use log::{error, trace};
-use s3::{creds::Credentials, Bucket, BucketConfiguration, Region};
+use s3::{Bucket, BucketConfiguration, Region, creds::Credentials};
 
 use crate::S3ErrorKind;
 
@@ -51,10 +51,7 @@ pub(crate) async fn create(cfg: &str) -> Result<String, S3ErrorKind> {
         Some(s) => String::from(s),
         None => return Err(S3ErrorKind::InvalidParameter),
     };
-    let region = Region::Custom {
-        region: region.into(),
-        endpoint: endpoint,
-    };
+    let region = Region::Custom { region, endpoint };
     let credentials =
         Credentials::new(Some(&access_key), Some(&secret_key), None, None, None).unwrap();
     let config = BucketConfiguration::default();
@@ -93,9 +90,9 @@ pub(crate) async fn list(cfg: &str) -> Result<String, S3ErrorKind> {
             let mut obj = json::JsonValue::new_object();
             obj["name"] = rs.name.clone().into();
             obj["is_truncated"] = rs.is_truncated.into();
-            rs.prefix.as_ref().map(|prefix| {
+            if let Some(prefix) = rs.prefix.as_ref() {
                 obj["prefix"] = prefix.as_str().into();
-            });
+            }
             let contents = rs
                 .contents
                 .iter()
@@ -127,11 +124,8 @@ fn new_bucket(json: &json::JsonValue) -> Result<Box<Bucket>, S3ErrorKind> {
         secret_key,
         endpoint,
         region,
-    } = get_aws_config(&json)?;
-    let region = Region::Custom {
-        region: region.into(),
-        endpoint: endpoint,
-    };
+    } = get_aws_config(json)?;
+    let region = Region::Custom { region, endpoint };
     let credentials =
         Credentials::new(Some(&access_key), Some(&secret_key), None, None, None).unwrap();
     let bucket = Bucket::new(&bucket_name, region, credentials).map_err(|e| {

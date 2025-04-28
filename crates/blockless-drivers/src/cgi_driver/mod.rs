@@ -34,10 +34,9 @@ fn increase_handle() -> u32 {
 pub async fn cgi_directory_list_exec(path: &str) -> Result<u32, CgiErrorKind> {
     let rs = process::cgi_directory_list_exec(path).await?;
     let handle = increase_handle();
-
-    get_ctx().map(|ctx| {
+    if let Some(ctx) = get_ctx() {
         ctx.insert(handle, CGICtx::DirectoryList((rs, 0)));
-    });
+    }
     Ok(handle)
 }
 
@@ -65,9 +64,9 @@ pub async fn command_and_exec(root_path: &str, cmd: &str) -> Result<u32, CgiErro
     let mut cgi = CgiProcess::new(root_path.into(), cmd)?;
 
     cgi.exec()?;
-    get_ctx().map(|ctx| {
+    if let Some(ctx) = get_ctx() {
         ctx.insert(handle, CGICtx::Process(cgi));
-    });
+    }
     Ok(handle)
 }
 

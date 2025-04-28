@@ -12,7 +12,7 @@ members = [
 [workspace.package]
 version = "31.0.0"
 authors = ["The Blockless Project Developers"]
-edition = "2021"
+edition = "2024"
 
 
 [patch.crates-io]

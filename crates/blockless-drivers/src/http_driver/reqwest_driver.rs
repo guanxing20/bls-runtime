@@ -55,10 +55,8 @@ pub(crate) async fn http_req(url: &str, opts: &str) -> Result<(u32, i32), HttpEr
         body = Some(b.to_string());
     }
 
-    let connect_timeout = json["connectTimeout"]
-        .as_u64()
-        .map(|s| Duration::from_secs(s));
-    let read_timeout = json["readTimeout"].as_u64().map(|s| Duration::from_secs(s));
+    let connect_timeout = json["connectTimeout"].as_u64().map(Duration::from_secs);
+    let read_timeout = json["readTimeout"].as_u64().map(Duration::from_secs);
 
     // build the headers from the options json
     let mut headers = reqwest::header::HeaderMap::new();
@@ -123,7 +121,7 @@ pub(crate) async fn http_req(url: &str, opts: &str) -> Result<(u32, i32), HttpEr
 pub(crate) fn http_read_head(fd: u32, head: &str) -> Result<String, HttpErrorKind> {
     let ctx = get_ctx().unwrap();
     let respone = match ctx.get_mut(&fd) {
-        Some(HttpCtx::Response(ref h)) => h,
+        Some(HttpCtx::Response(h)) => h,
         Some(HttpCtx::StreamState(_)) => return Err(HttpErrorKind::RuntimeError),
         None => return Err(HttpErrorKind::InvalidHandle),
     };
@@ -179,12 +177,13 @@ async fn stream_read(state: &mut StreamState, dest: &mut [u8]) -> usize {
                 if buffer.remaining() > 0 {
                     state.buffer = Some(buffer);
                 }
-                if readn + n < dest.len() {
-                    readn += n;
-                } else if n + readn == dest.len() {
+                if dest.len() == readn + n {
                     return readn + n;
-                } else {
-                    unreachable!("can't be happend!");
+                }
+                match (readn + n).cmp(&dest.len()) {
+                    std::cmp::Ordering::Less => readn += n,
+                    std::cmp::Ordering::Equal => return readn + n,
+                    std::cmp::Ordering::Greater => unreachable!("can't be happend!"),
                 }
             }
         }
@@ -209,7 +208,7 @@ pub async fn http_read_body(fd: u32, buf: &mut [u8]) -> Result<u32, HttpErrorKin
             ctx.insert(fd, HttpCtx::StreamState(stream_state));
             Ok(readn as u32)
         }
-        None => return Err(HttpErrorKind::InvalidHandle),
+        None => Err(HttpErrorKind::InvalidHandle),
     }
 }
 
@@ -241,7 +240,7 @@ mod test {
             self: Pin<&mut Self>,
             _cx: &mut std::task::Context<'_>,
         ) -> Poll<Option<Self::Item>> {
-            let s = self.get_mut().0.pop().map(|s| Ok(s));
+            let s = self.get_mut().0.pop().map(Ok);
             Poll::Ready(s)
         }
     }
@@ -280,7 +279,7 @@ mod test {
 
     fn get_runtime() -> Runtime {
         let rt = Builder::new_current_thread().enable_all().build().unwrap();
-        return rt;
+        rt
     }
 
     // Test for valid headers
@@ -398,8 +397,8 @@ mod test {
                 buffer: None,
             };
             let mut src: Vec<u8> = Vec::new();
-            src.extend(&data[..]);
-            src.extend(&data2[..]);
+            src.extend(data);
+            src.extend(data2);
             let mut tmp: [u8; 8] = [0; 8];
             let mut dest: Vec<u8> = Vec::new();
             let _ = stream_read(&mut state, &mut tmp[..]).await;

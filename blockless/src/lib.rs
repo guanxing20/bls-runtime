@@ -3,9 +3,8 @@ pub mod error;
 mod modules;
 
 pub use anyhow::Result as AnyResult;
-use anyhow::{bail, Context};
+use anyhow::{Context, bail};
 use blockless_drivers::{CdylibDriver, DriverConetxt};
-use blockless_env;
 pub use blockless_multiaddr::MultiAddr;
 use cap_std::ambient_authority;
 use context::BlocklessContext;
@@ -19,8 +18,8 @@ use wasi_common::sync::WasiCtxBuilder;
 use wasi_common::sync::{Dir, TcpListener};
 pub use wasi_common::*;
 use wasmtime::{
-    component::Component, Config, Engine, Linker, Module, Precompiled, Store, StoreLimits,
-    StoreLimitsBuilder, Trap,
+    Config, Engine, Linker, Module, Precompiled, Store, StoreLimits, StoreLimitsBuilder, Trap,
+    component::Component,
 };
 use wasmtime_wasi::IoView;
 use wasmtime_wasi::{DirPerms, FilePerms};
@@ -282,8 +281,8 @@ impl BlocklessConfig2Preview1WasiBuilder for BlocklessConfig {
         }
         conf.debug_info(self.get_debug_info());
 
-        if let Some(_) = self.get_limited_fuel() {
-            //fuel is enable.
+        if self.get_limited_fuel().is_some() {
+            // fuel is enable.
             conf.consume_fuel(true);
         }
         conf.async_support(true);
@@ -355,8 +354,10 @@ impl BlocklessRunner {
         let store_limits = b_conf.store_limits();
         let fule = b_conf.get_limited_fuel();
 
-        let mut ctx = BlocklessContext::default();
-        ctx.store_limits = store_limits;
+        let ctx = BlocklessContext {
+            store_limits,
+            ..Default::default()
+        };
 
         let mut store: Store<BlocklessContext> = Store::new(&engine, ctx);
         store.limiter(|ctx| &mut ctx.store_limits);
@@ -364,7 +365,7 @@ impl BlocklessRunner {
         if let Some(f) = fule {
             store.set_fuel(f).unwrap();
         }
-        let (mut linker, mut run_target, entry) =
+        let (mut linker, run_target, entry) =
             self.module_linker(entry, &engine, &mut store).await?;
         let mut is_component = false;
         if b_conf.nn {
@@ -386,14 +387,14 @@ impl BlocklessRunner {
         // support thread.
         if support_thread {
             Self::preview1_setup_thread_support(
-                &mut linker.unwrap_core(),
+                linker.unwrap_core(),
                 &mut store,
                 run_target.unwrap_core(),
             );
         }
 
         let result =
-            Self::load_main_module(&b_conf, &mut store, &mut linker, &mut run_target, &entry).await;
+            Self::load_main_module(b_conf, &mut store, &mut linker, &run_target, &entry).await;
         let exit_code = match result {
             Err(ref t) => {
                 Self::error_process(is_component, t, || store.get_fuel().unwrap(), max_fuel)
@@ -470,7 +471,7 @@ impl BlocklessRunner {
     ) -> AnyResult<()> {
         // The main module might be allowed to have unknown imports, which
         // should be defined as traps:
-        if cfg.unknown_imports_trap == true {
+        if cfg.unknown_imports_trap {
             match linker {
                 BlsLinker::Core(linker) => {
                     linker.define_unknown_imports_as_traps(module.unwrap_core())?;
@@ -484,10 +485,7 @@ impl BlocklessRunner {
         let result = match linker {
             BlsLinker::Core(linker) => {
                 let module = module.unwrap_core();
-                let instance = linker
-                    .instantiate_async(&mut *store, &module)
-                    .await
-                    .unwrap();
+                let instance = linker.instantiate_async(&mut *store, module).await.unwrap();
 
                 // If `_initialize` is present, meaning a reactor, then invoke the function.
                 if let Some(func) = instance.get_func(&mut *store, "_initialize") {
@@ -583,7 +581,7 @@ impl BlocklessRunner {
         }
         let source_name = cfg.modules[0].file.as_str();
 
-        if let Err(coredump_err) = Self::write_core_dump(store, &err, &source_name, coredump_path) {
+        if let Err(coredump_err) = Self::write_core_dump(store, &err, source_name, coredump_path) {
             eprintln!("warning: coredump failed to generate: {coredump_err}");
             err
         } else {
@@ -669,7 +667,7 @@ impl BlocklessRunner {
         store: &mut Store<BlocklessContext>,
         module: &Module,
     ) {
-        wasmtime_wasi_threads::add_to_linker(linker, store, &module, |ctx| {
+        wasmtime_wasi_threads::add_to_linker(linker, store, module, |ctx| {
             ctx.wasi_threads.as_ref().unwrap()
         })
         .unwrap();
@@ -679,11 +677,11 @@ impl BlocklessRunner {
         ));
     }
 
-    async fn module_linker<'a>(
+    async fn module_linker(
         &self,
         mut entry: String,
         engine: &Engine,
-        store: &'a mut Store<BlocklessContext>,
+        store: &'_ mut Store<BlocklessContext>,
     ) -> anyhow::Result<(BlsLinker, BlsRunTarget, String)> {
         let version = self.0.version();
         match version {
@@ -693,10 +691,10 @@ impl BlocklessRunner {
                 let linker = match module {
                     BlsRunTarget::Module(_) => {
                         self.preview1_setup(store.data_mut())?;
-                        BlsLinker::Core(wasmtime::Linker::new(&engine))
+                        BlsLinker::Core(wasmtime::Linker::new(engine))
                     }
                     BlsRunTarget::Component(_) => {
-                        BlsLinker::Component(wasmtime::component::Linker::new(&engine))
+                        BlsLinker::Component(wasmtime::component::Linker::new(engine))
                     }
                 };
                 Ok((linker, module, ENTRY.to_string()))
@@ -736,10 +734,8 @@ impl BlocklessRunner {
             if let Some(exit) = e.downcast_ref::<wasmtime_wasi::I32Exit>() {
                 std::process::exit(exit.0);
             }
-        } else {
-            if let Some(exit) = e.downcast_ref::<wasi_common::I32Exit>() {
-                std::process::exit(exit.0);
-            }
+        } else if let Some(exit) = e.downcast_ref::<wasi_common::I32Exit>() {
+            std::process::exit(exit.0);
         }
         let trap_code_2_exit_code = |trap_code: &Trap| -> Option<i32> {
             match *trap_code {
@@ -760,14 +756,11 @@ impl BlocklessRunner {
             }
         };
         let trap = e.downcast_ref::<Trap>();
-        let rs = trap.and_then(|t| trap_code_2_exit_code(t)).unwrap_or(-1);
+        let rs = trap.and_then(trap_code_2_exit_code).unwrap_or(-1);
         match trap {
             Some(Trap::OutOfFuel) => {
                 let used_fuel = used_fuel();
-                let max_fuel = match max_fuel {
-                    Some(m) => m,
-                    None => 0,
-                };
+                let max_fuel = max_fuel.unwrap_or_default();
                 error!(
                     "All fuel is consumed, the app exited, fuel consumed {}, Max Fuel is {}.",
                     used_fuel, max_fuel

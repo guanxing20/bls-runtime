@@ -1,6 +1,6 @@
 use crate::IpfsErrorKind;
 
-use super::{file::FileApi, gen_boundary, HttpRaw};
+use super::{HttpRaw, file::FileApi, gen_boundary};
 use crate::read_ext::ReadRemain;
 
 pub struct Api {
@@ -79,7 +79,7 @@ impl Api {
             .bytes()
             .await
             .map_err(|_| IpfsErrorKind::RuntimeError)?;
-        return Ok(Response::new(status, Some(bytes.to_vec())));
+        Ok(Response::new(status, Some(bytes.to_vec())))
     }
 
     pub async fn multipart_raw(
@@ -97,7 +97,7 @@ impl Api {
         http.boundary(Some(boudary));
         http.method("POST");
         http.connect().await?;
-        return Ok(http);
+        Ok(http)
     }
 }
 

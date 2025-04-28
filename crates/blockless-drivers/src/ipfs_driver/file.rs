@@ -1,6 +1,6 @@
 use super::{
-    api::{Api, Response},
     HttpRaw,
+    api::{Api, Response},
 };
 use crate::IpfsErrorKind;
 

@@ -100,5 +100,5 @@ fn generate_func(
             },
         )?;
     );
-    linker.into()
+    linker
 }

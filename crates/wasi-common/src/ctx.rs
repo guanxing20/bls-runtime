@@ -84,7 +84,7 @@ impl WasiCtx {
 
     pub fn resource_permission(&self, resource: &str) -> bool {
         match self.blockless_config.lock().unwrap().deref() {
-            Some(ref c) => c.resource_permission(resource),
+            Some(c) => c.resource_permission(resource),
             None => false,
         }
     }

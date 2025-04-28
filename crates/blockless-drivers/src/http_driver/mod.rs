@@ -43,7 +43,7 @@ pub async fn http_read_head(fd: u32, head: &str, buf: &mut [u8]) -> Result<u32, 
     let h = reqwest_driver::http_read_head(fd, head)?;
     let sbuf = h.as_bytes();
     let copyn = buf.len().min(sbuf.len());
-    buf[..copyn].copy_from_slice(&sbuf);
+    buf[..copyn].copy_from_slice(sbuf);
     Ok(copyn as u32)
 }
 

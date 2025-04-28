@@ -1,5 +1,5 @@
 use crate::Permission;
-use anyhow::{bail, Ok};
+use anyhow::{Ok, bail};
 use bls_permissions::PermissionsOptions;
 use std::{
     collections::HashMap,
