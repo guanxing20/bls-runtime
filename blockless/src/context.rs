@@ -2,8 +2,8 @@ use std::sync::{Arc, Mutex};
 
 use wasi_common::PermissionsConfig;
 use wasmtime::StoreLimits;
-use wasmtime_wasi::preview1::WasiP1Ctx;
 use wasmtime_wasi::IoView;
+use wasmtime_wasi::preview1::WasiP1Ctx;
 use wasmtime_wasi_threads::WasiThreadsCtx;
 
 #[derive(Clone, Default)]
