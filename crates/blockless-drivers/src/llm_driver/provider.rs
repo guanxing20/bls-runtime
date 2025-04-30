@@ -15,6 +15,8 @@ pub enum Role {
     User,
     #[serde(rename = "assistant")]
     Assistant,
+    #[serde(rename = "tool")]
+    Tool,
 }
 
 impl std::fmt::Display for Role {
@@ -23,6 +25,7 @@ impl std::fmt::Display for Role {
             Self::System => write!(f, "system"),
             Self::User => write!(f, "user"),
             Self::Assistant => write!(f, "assistant"),
+            Self::Tool => write!(f, "tool"),
         }
     }
 }
