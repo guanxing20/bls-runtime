@@ -26,4 +26,9 @@ Try to execute binary
 
 ![](images/help.jpg "Command Help")
 
+## How to build the wasm
+
+### Download the bls-javy
+
+
 
