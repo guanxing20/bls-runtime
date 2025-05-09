@@ -34,7 +34,7 @@ Try to execute binary
 sh -c "curl https://raw.githubusercontent.com/blocklessnetwork/bls-javy/main/download.sh | bash"
 ```
 
-### Write your hello world
+### Write and execute hello world
 
 Save code to the hello.js file
 ```javascript
@@ -56,6 +56,15 @@ Run the wasm with runtime
 bls-runtime  hello.wasm
 ```
 
+### Use --limited-fuel
+
+Use option `--limited-fuel` to limit the instructions the app can execute.
+
+```bash
+bls-runtime --limited-fuel=1000  hello.wasm
+```
+
+After excute the wasm, you will get the `1` as the app execute code, and in the log file `hello.log` you will get the message "[2025-05-09T03:23:32Z ERROR blockless] All fuel is consumed, the app exited, fuel consumed 0, Max Fuel is 1000."
 
 
 
