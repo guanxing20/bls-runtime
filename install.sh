@@ -93,7 +93,7 @@ rm  -rf $WORkING_DIR
 
 # Add bin to PATH if not already added
 if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
-    echo -e "${RED}add follow line to your shell profile...${NC}"
+    echo -e "${RED}Please add follow line to your shell profile...${NC}"
     echo -e "${BRIGHT_GREEN}export PATH=$INSTALL_DIR:\$PATH${NC}"
 fi
 
