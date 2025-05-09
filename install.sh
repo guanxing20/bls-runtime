@@ -99,4 +99,4 @@ fi
 
 # Verify the installation
 echo -e "Install complete!"
-
+$INSTALL_DIR/bls-runtime --version
