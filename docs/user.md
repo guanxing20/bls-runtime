@@ -101,3 +101,15 @@ bls-runtime --dir=`pwd`/root_dir::/ target/wasm32-wasip1/release/hello-world.was
 ![](images/success_rw.jpg)
 
 
+### Use --max-memory-size
+
+Set the runtime memory limits to restrict the app's maximum memory usage. By default, there are no limits.
+
+```
+git clone -b memory_limited https://github.com/blocklessnetwork/template-rust-wasi.git
+cd template-rust-wasi
+cargo build --target wasm32-wasip1 --release
+bls-runtime --max-memory-size=1024 target/wasm32-wasip1/release/hello-world.wasm
+```
+
+![](images/memory_limited.jpg)
