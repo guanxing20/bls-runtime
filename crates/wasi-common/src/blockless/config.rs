@@ -893,6 +893,16 @@ impl BlocklessConfig {
     }
 
     #[inline(always)]
+    pub fn max_memory_size(&mut self, m: Option<u64>) {
+        self.store_limited.max_memory_size = m.map(|s| s as _);
+    }
+
+    #[inline(always)]
+    pub fn get_max_memory_size(&self) -> Option<u64> {
+        self.store_limited.max_memories.map(|m| m as u64)
+    }
+
+    #[inline(always)]
     pub fn limited_memory(&mut self, m: Option<u64>) {
         self.store_limited.max_memories = m.map(|s| s as _);
     }

@@ -31,8 +31,7 @@ const DRIVERS_ROOT_PATH_HELP: &str = "The root directory for the runtime's drive
 
 const RUNTIME_LOGGER_HELP: &str = "The log file for the runtime.";
 
-const LIMITED_MEMORY_HELP: &str =
-    "The runtime's memory is limited, with the default set to infinite.";
+const LIMITED_MEMORY_HELP: &str = "The maximum number of linear memories that can be created ";
 
 const RUN_TIME_HELP: &str = "The runtime's time limit, with the default set to infinite.";
 
@@ -380,16 +379,16 @@ pub(crate) struct CliCommandOpts {
     #[clap(value_name = "ARGS", help = APP_ARGS_HELP)]
     pub args: Vec<String>,
 
-    #[clap(long = "unknown_imports_trap", value_name = "UNKNOWN_IMPORTS_TRAP", help = UNKNOW_IMPORTS_TRAP_HELP)]
+    #[clap(long = "unknown-imports-trap", value_name = "UNKNOWN_IMPORTS_TRAP", help = UNKNOW_IMPORTS_TRAP_HELP)]
     pub unknown_imports_trap: bool,
 
-    #[clap(long = "cli_exit_with_code", value_name = "CLI_EXIT_WITH_CODE", help = CLI_EXIT_WITH_CODE_HELP)]
+    #[clap(long = "cli-exit-with-code", value_name = "CLI_EXIT_WITH_CODE", help = CLI_EXIT_WITH_CODE_HELP)]
     pub cli_exit_with_code: bool,
 
-    #[clap(long = "network_error_code", value_name = "NETWORK_ERROR_CODE", help = NETWORK_ERROR_CODE_HELP)]
+    #[clap(long = "network-error-code", value_name = "NETWORK_ERROR_CODE", help = NETWORK_ERROR_CODE_HELP)]
     pub network_error_code: bool,
 
-    #[clap(long = "max_memory_size", value_name = "MAX_MEMORY_SIZE", help = MAX_MEMORY_SIZE_HELP)]
+    #[clap(long = "max-memory-size", value_name = "MAX_MEMORY_SIZE", help = MAX_MEMORY_SIZE_HELP)]
     pub max_memory_size: Option<u64>,
 
     #[clap(flatten)]
@@ -434,7 +433,7 @@ impl CliCommandOpts {
         conf.0.set_stdin_args(self.args);
         conf.0.set_map_dirs(self.dirs);
         conf.0.set_feature_thread(self.feature_thread);
-        conf.0.limited_memory(self.max_memory_size);
+        conf.0.max_memory_size(self.max_memory_size);
         conf.0.permissions_config = self.permission_flags.into();
 
         // Handle IO settings
