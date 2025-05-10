@@ -31,8 +31,7 @@ const DRIVERS_ROOT_PATH_HELP: &str = "The root directory for the runtime's drive
 
 const RUNTIME_LOGGER_HELP: &str = "The log file for the runtime.";
 
-const LIMITED_MEMORY_HELP: &str =
-    "The runtime's memory is limited, with the default set to infinite.";
+const LIMITED_MEMORY_HELP: &str = "The maximum number of linear memories that can be created ";
 
 const RUN_TIME_HELP: &str = "The runtime's time limit, with the default set to infinite.";
 
@@ -434,7 +433,7 @@ impl CliCommandOpts {
         conf.0.set_stdin_args(self.args);
         conf.0.set_map_dirs(self.dirs);
         conf.0.set_feature_thread(self.feature_thread);
-        conf.0.limited_memory(self.max_memory_size);
+        conf.0.max_memory_size(self.max_memory_size);
         conf.0.permissions_config = self.permission_flags.into();
 
         // Handle IO settings

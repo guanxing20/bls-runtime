@@ -80,6 +80,9 @@ impl BlocklessConfig2Preview1WasiBuilder for BlocklessConfig {
         if let Some(m) = store_limited.max_tables {
             builder = builder.tables(m as _);
         }
+        if let Some(m) = store_limited.max_memories {
+            builder = builder.memories(m as _);
+        }
         if let Some(m) = store_limited.trap_on_grow_failure {
             builder = builder.trap_on_grow_failure(m);
         }
