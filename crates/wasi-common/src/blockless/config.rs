@@ -894,12 +894,12 @@ impl BlocklessConfig {
 
     #[inline(always)]
     pub fn limited_memory(&mut self, m: Option<u64>) {
-        self.store_limited.max_memories = m.map(|s| s as _);
+        self.store_limited.max_memory_size = m.map(|s| s as _);
     }
 
     #[inline(always)]
     pub fn get_limited_memory(&self) -> Option<u64> {
-        self.store_limited.max_memories.map(|m| m as u64)
+        self.store_limited.max_memory_size.map(|m| m as u64)
     }
 
     pub fn resource_permission(&self, url: &str) -> bool {
