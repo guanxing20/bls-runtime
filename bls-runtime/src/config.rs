@@ -174,6 +174,7 @@ impl CliConfig {
             .as_str()
             .map(LoggerLevel::from);
         let limited_memory: Option<u64> = json_obj["limited_memory"].as_u64();
+        let max_memory_size: Option<u64> = json_obj["max_memory_size"].as_u64();
         let extensions_path: Option<String> =
             json_obj["extensions_path"].as_str().map(String::from);
         let stdin: Option<&str> = json_obj["stdin"].as_str();
@@ -210,6 +211,7 @@ impl CliConfig {
         bc.set_drivers_root_path(drivers_root_path);
         bc.limited_fuel(limited_fuel);
         bc.limited_memory(limited_memory);
+        bc.max_memory_size(max_memory_size);
         bc.set_run_time(run_time);
         if let Some(v) = version {
             bc.set_version(v.into());

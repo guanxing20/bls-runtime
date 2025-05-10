@@ -379,16 +379,16 @@ pub(crate) struct CliCommandOpts {
     #[clap(value_name = "ARGS", help = APP_ARGS_HELP)]
     pub args: Vec<String>,
 
-    #[clap(long = "unknown_imports_trap", value_name = "UNKNOWN_IMPORTS_TRAP", help = UNKNOW_IMPORTS_TRAP_HELP)]
+    #[clap(long = "unknown-imports-trap", value_name = "UNKNOWN_IMPORTS_TRAP", help = UNKNOW_IMPORTS_TRAP_HELP)]
     pub unknown_imports_trap: bool,
 
-    #[clap(long = "cli_exit_with_code", value_name = "CLI_EXIT_WITH_CODE", help = CLI_EXIT_WITH_CODE_HELP)]
+    #[clap(long = "cli-exit-with-code", value_name = "CLI_EXIT_WITH_CODE", help = CLI_EXIT_WITH_CODE_HELP)]
     pub cli_exit_with_code: bool,
 
-    #[clap(long = "network_error_code", value_name = "NETWORK_ERROR_CODE", help = NETWORK_ERROR_CODE_HELP)]
+    #[clap(long = "network-error-code", value_name = "NETWORK_ERROR_CODE", help = NETWORK_ERROR_CODE_HELP)]
     pub network_error_code: bool,
 
-    #[clap(long = "max_memory_size", value_name = "MAX_MEMORY_SIZE", help = MAX_MEMORY_SIZE_HELP)]
+    #[clap(long = "max-memory-size", value_name = "MAX_MEMORY_SIZE", help = MAX_MEMORY_SIZE_HELP)]
     pub max_memory_size: Option<u64>,
 
     #[clap(flatten)]
