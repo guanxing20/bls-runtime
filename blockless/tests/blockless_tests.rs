@@ -42,3 +42,23 @@ fn test_blockless_normal() {
     let code = run_blockless(config).unwrap();
     assert_eq!(code.code, 0);
 }
+
+#[test]
+fn test_outof_memory() {
+    let temp_dir = TempDir::new("blockless_run").unwrap();
+    let file_path = temp_dir.path().join("test_blockless_outofmem_run.wasm");
+    let code = r#"
+    (module
+        (memory $mem 20)
+        (func (export "_start"))
+        (export "memory" (memory $mem))
+    )
+    "#;
+    fs::write(&file_path, code).unwrap();
+    let path = file_path.to_str().unwrap();
+    let mut config = BlocklessConfig::new(path);
+    config.max_memory_size(Some(1));
+    config.set_version(BlocklessConfigVersion::Version0);
+    let code = run_blockless(config).unwrap();
+    assert_eq!(code.code, 16);
+}
