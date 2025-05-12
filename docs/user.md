@@ -56,7 +56,7 @@ Run the wasm with runtime
 bls-runtime  hello.wasm
 ```
 
-### Use --limited-fuel
+### Use `--limited-fuel` option
 
 Use option `--limited-fuel` to limit the instructions the app can execute.
 
@@ -66,7 +66,7 @@ bls-runtime --limited-fuel=1000  hello.wasm
 
 After excute the wasm, you will get the `1` as the app execute code, and in the log file `hello.log` you will get the message "[2025-05-09T03:23:32Z ERROR blockless] All fuel is consumed, the app exited, fuel consumed 0, Max Fuel is 1000."
 
-### Use --dir or --fs-root-path
+### Use `--dir` or `--fs-root-path` option
 
 The runtime is a great sandbox — by default, it cannot access the local file system unless explicitly configured. To enable local file system access, you need to map it using the `--fs-root-path` and `--dir` options.
 
@@ -101,7 +101,7 @@ bls-runtime --dir=`pwd`/root_dir::/ target/wasm32-wasip1/release/hello-world.was
 ![](images/success_rw.jpg)
 
 
-### Use --max-memory-size
+### Use `--max-memory-size` option 
 
 Set the runtime memory limits to restrict the app's maximum memory usage. By default, there are no limits.
 
@@ -113,3 +113,18 @@ bls-runtime --max-memory-size=1024 target/wasm32-wasip1/release/hello-world.wasm
 ```
 
 ![](images/memory_limited.jpg)
+
+
+### Use `--env` option
+
+In some scenarios, we use environment variables within a WASM app. By default, no environment variables are available, but they can be passed in using the `--env` option.
+
+
+```
+git clone -b environment https://github.com/blocklessnetwork/template-rust-wasi.git
+cd template-rust-wasi
+cargo build --target wasm32-wasip1 --release
+bls-runtime --env=LANG=en_AU.UTF-8 --env=HOME=/home/ target/wasm32-wasip1/release/hello-world.wasm
+```
+
+![](images/env.jpg)
