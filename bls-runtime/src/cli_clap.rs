@@ -72,7 +72,7 @@ const CLI_EXIT_WITH_CODE_HELP: &str =
 const NETWORK_ERROR_CODE_HELP: &str =
     "Enable WASI APIs marked as: @unstable(feature = network-error-code).";
 
-const MAX_MEMORY_SIZE_HELP: &str = "The max memory size limited.";
+const MAX_MEMORY_SIZE_HELP: &str = "The maximum number of bytes a linear memory can grow to.";
 
 const NN_HELP: &str = "Enable support for WASI neural network imports .";
 
