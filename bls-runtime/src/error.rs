@@ -34,23 +34,25 @@ impl fmt::Display for CliExitCode {
             CliExitCode::OutOfBoundsMemoryAccess => write!(f, "Out of bounds memory access"),
             CliExitCode::MisalignedMemoryAccess => write!(f, "Misaligned memory access"),
             CliExitCode::UndefinedElement => {
-                        write!(f, "Undefined element: out of bounds table access")
-                    }
+                write!(f, "Undefined element: out of bounds table access")
+            }
             CliExitCode::UninitializedElement => write!(f, "Uninitialized element"),
             CliExitCode::IndirectCallTypeMismatch => write!(f, "Indirect call type mismatch"),
             CliExitCode::IntegerOverflow => write!(f, "Integer overflow"),
             CliExitCode::IntegerDivideByZero => write!(f, "Integer divide by zero"),
             CliExitCode::InvalidConversionToInteger => write!(f, "Invalid conversion to integer"),
             CliExitCode::UnreachableInstructionExecuted => {
-                        write!(f, "wasm 'unreachable' instruction executed")
-                    }
+                write!(f, "wasm 'unreachable' instruction executed")
+            }
             CliExitCode::Interrupt => write!(f, "Interrupt"),
             CliExitCode::DegenerateComponentAdapterCalled => {
-                        write!(f, "Degenerate component adapter called")
-                    }
+                write!(f, "Degenerate component adapter called")
+            }
             CliExitCode::AppTimeout => write!(f, "The app timeout"),
             CliExitCode::ConfigureError => write!(f, "The configure error"),
-            CliExitCode::PagesExceedsMemoryLimits => write!(f, "Memory pages exceeds memory limits"),
+            CliExitCode::PagesExceedsMemoryLimits => {
+                write!(f, "Memory pages exceeds memory limits")
+            }
             CliExitCode::UnknownError(err_str) => write!(f, "Unknown error: {}", err_str),
         }
     }
