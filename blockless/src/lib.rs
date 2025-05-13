@@ -484,7 +484,7 @@ impl BlocklessRunner {
         let result = match linker {
             BlsLinker::Core(linker) => {
                 let module = module.unwrap_core();
-                let instance = linker.instantiate_async(&mut *store, module).await.unwrap();
+                let instance = linker.instantiate_async(&mut *store, module).await?;
 
                 // If `_initialize` is present, meaning a reactor, then invoke the function.
                 if let Some(func) = instance.get_func(&mut *store, "_initialize") {
@@ -755,7 +755,16 @@ impl BlocklessRunner {
             }
         };
         let trap = e.downcast_ref::<Trap>();
-        let rs = trap.and_then(trap_code_2_exit_code).unwrap_or(-1);
+        let rs = trap
+            .and_then(trap_code_2_exit_code)
+            .or_else(|| {
+                if e.to_string().starts_with("memory minimum size of") {
+                    Some(16)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(-1);
         match trap {
             Some(Trap::OutOfFuel) => {
                 let used_fuel = used_fuel();

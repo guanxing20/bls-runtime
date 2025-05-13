@@ -218,6 +218,7 @@ $ "echo "FOO" | env THIS_IS_MY_VAR=FOO BLS_LIST_VARS=THIS_IS_MY_VAR ~/.bls/runti
 |Exit Code 12|interrupt|
 |Exit Code 13|degenerate component adapter called|
 |Exit Code 15|the app timeout|
+|Exit Code 16|Memory pages exceeds memory limits|
 |Exit Code 128|The configure error|
 |Exit Code 255|Unknown error|
 

@@ -20,6 +20,7 @@ pub enum CliExitCode {
     Interrupt,
     DegenerateComponentAdapterCalled,
     AppTimeout,
+    PagesExceedsMemoryLimits,
     ConfigureError,
     UnknownError(String),
 }
@@ -49,6 +50,9 @@ impl fmt::Display for CliExitCode {
             }
             CliExitCode::AppTimeout => write!(f, "The app timeout"),
             CliExitCode::ConfigureError => write!(f, "The configure error"),
+            CliExitCode::PagesExceedsMemoryLimits => {
+                write!(f, "Memory pages exceeds memory limits")
+            }
             CliExitCode::UnknownError(err_str) => write!(f, "Unknown error: {}", err_str),
         }
     }
@@ -74,6 +78,7 @@ impl From<i32> for CliExitCode {
             13 => CliExitCode::DegenerateComponentAdapterCalled,
             // NOTE: where is 14?
             15 => CliExitCode::AppTimeout,
+            16 => CliExitCode::PagesExceedsMemoryLimits,
             128 => CliExitCode::ConfigureError,
             _ => CliExitCode::UnknownError(format!("exit code: {}", exitcode)),
         }
@@ -105,6 +110,7 @@ impl From<CliExitCode> for u8 {
             CliExitCode::DegenerateComponentAdapterCalled => 13,
             // NOTE: where is 14?
             CliExitCode::AppTimeout => 15,
+            CliExitCode::PagesExceedsMemoryLimits => 16,
             CliExitCode::ConfigureError => 128,
             CliExitCode::UnknownError(_) => 255,
         }
