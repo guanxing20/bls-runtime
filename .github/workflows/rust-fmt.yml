@@ -24,8 +24,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.85
         with:
           components: rustfmt
-      - name: Run fmt check
-        run: cargo fmt --all -- --check
+      - name: Run nightly fmt check
+        run: cargo +nightly fmt --all -- --check
       - name: Run clippy
         run: |
           rustup override set 1.85
