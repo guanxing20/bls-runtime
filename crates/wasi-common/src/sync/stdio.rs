@@ -5,8 +5,8 @@ use std::io::{self, IsTerminal, Read, Write};
 use system_interface::io::ReadReady;
 
 use crate::{
-    Error, ErrorExt,
     file::{FdFlags, FileType, WasiFile},
+    Error, ErrorExt,
 };
 #[cfg(windows)]
 use io_extras::os::windows::{AsRawHandleOrSocket, RawHandleOrSocket};
