@@ -5,7 +5,7 @@ use blockless::{
     OptionParser, Permission, PermissionGrant, PermissionsConfig, Stderr, Stdin, Stdout,
 };
 use clap::{
-    Arg, ArgMatches, Command, Parser,
+    Arg, ArgMatches, Command, Parser, ValueHint,
     builder::{TypedValueParser, ValueParser},
 };
 use std::{
@@ -224,22 +224,22 @@ pub enum RuntimeType {
 
 #[derive(Parser, Debug)]
 pub struct PermissionFlags {
-    #[clap(long = "allow-read", id="allow-read", num_args=(0..), action=clap::ArgAction::Append, value_name = "[PATH[,]]", help = ALLOW_READ_HELP, value_parser = parser_allow)]
+    #[clap(long = "allow-read", id="allow-read", num_args=(0..), require_equals=true, action=clap::ArgAction::Append, value_name = "[PATH[,]]", help = ALLOW_READ_HELP, value_parser = parser_allow)]
     pub allow_read: Option<PermissionGrant>,
 
-    #[clap(long = "allow-write", id="allow-write", num_args=(0..) , value_name = "PATH[,]", help = ALLOW_WRITE_HELP, value_parser = parser_allow)]
+    #[clap(long = "allow-write", id="allow-write", num_args=(0..) , require_equals=true, action=clap::ArgAction::Append, value_name = "PATH[,]", help = ALLOW_WRITE_HELP, value_parser = parser_allow)]
     pub allow_write: Option<PermissionGrant>,
 
-    #[clap(long = "allow-net", id="allow-net", num_args=(0..) , value_name = "PATH[,]", help = ALLOW_NET_HELP, value_parser = parser_allow)]
+    #[clap(long = "allow-net", id="allow-net", num_args=(0..), require_equals=true, action=clap::ArgAction::Append, value_name = "PATH[,]", help = ALLOW_NET_HELP, value_parser = parser_allow)]
     pub allow_net: Option<PermissionGrant>,
 
-    #[clap(long = "deny-read", id="deny-read", num_args=(0..) , value_name = "PATH[,]", help = DENY_READ_HELP, value_parser = parser_allow)]
+    #[clap(long = "deny-read", id="deny-read", num_args=(0..), require_equals=true, action=clap::ArgAction::Append, value_name = "PATH[,]", help = DENY_READ_HELP, value_parser = parser_allow)]
     pub deny_read: Option<PermissionGrant>,
 
-    #[clap(long = "deny-write", id="deny-write", num_args=(0..) , value_name = "PATH[,]", help = DENY_WRITE_HELP, value_parser = parser_allow)]
+    #[clap(long = "deny-write", id="deny-write", num_args=(0..), require_equals=true, action=clap::ArgAction::Append, value_name = "PATH[,]", help = DENY_WRITE_HELP, value_parser = parser_allow)]
     pub deny_write: Option<PermissionGrant>,
 
-    #[clap(long = "deny-net", id="deny-net", num_args=(0..) , value_name = "URL[,]", help = DENY_NET_HELP, value_parser = parser_allow)]
+    #[clap(long = "deny-net", id="deny-net", num_args=(0..), require_equals=true, action=clap::ArgAction::Append, value_name = "URL[,]", help = DENY_NET_HELP, value_parser = parser_allow)]
     pub deny_net: Option<PermissionGrant>,
 
     #[clap(long = "allow-all", id = "allow-all", help = "Allow all permissions.")]
