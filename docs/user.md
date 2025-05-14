@@ -85,7 +85,7 @@ mkdir root_dir
 
 If you don't map the required path, running the WASM app will result in a crash.
 
-```
+```bash
 bls-runtime target/wasm32-wasip1/release/hello-world.wasm
 ```
 ![](images/crash.jpg)
@@ -93,7 +93,7 @@ bls-runtime target/wasm32-wasip1/release/hello-world.wasm
 
 The correct approach is to run the following command.
 
-```
+```bash
 bls-runtime --dir=`pwd`/root_dir::/ target/wasm32-wasip1/release/hello-world.wasm
 ```
 ```--dir=`pwd`/root_dir::/``` mean map host dir `pwd`/root_dir to / 
@@ -120,7 +120,7 @@ bls-runtime --max-memory-size=1024 target/wasm32-wasip1/release/hello-world.wasm
 In some scenarios, we use environment variables within a WASM app. By default, no environment variables are available, but they can be passed in using the `--env` option.
 
 
-```
+```bash
 git clone -b environment https://github.com/blocklessnetwork/template-rust-wasi.git
 cd template-rust-wasi
 cargo build --target wasm32-wasip1 --release
@@ -128,3 +128,54 @@ bls-runtime --env=LANG=en_AU.UTF-8 --env=HOME=/home/ target/wasm32-wasip1/releas
 ```
 
 ![](images/env.jpg)
+
+### The permssion options
+The runtime access to most system I/O is denied by default. If there are some I/O operations that are allowed in a limited capacity, even by default. 
+To enable the operations, the user must  grant permission to the bls-runtime. Follow options is valid for security of bls-runtime `--allow-read`, `--allow-write`, `--allow-net`.
+
+When execute the wasm app, use can explicitly grant permission to specify files, directories and network.
+
+Users can also explicitly disallow access to specific resources by using the `--deny-read`, `--deny-write`, `--deny-net` flags
+
+`--allow-all` flag that grants all permissions to wasm app
+
+#### File system access 
+
+The wasm app can't access read and write arbitrary files on the file system, even you map the host dir to wasm app use option `--dir` This includes listing the contents of directories.
+
+Access to read files is granted using the `--allow-read` option and access to write files is granted using the `--allow-write` option. These flags can be specified with a list of paths to allow access to specific files or directories and any subdirectories in them.
+
+Definition:`--allow-read[=<PATH>...]`
+
+```bash
+git clone -b permssions/read https://github.com/blocklessnetwork/template-rust-wasi.git
+cd template-rust-wasi
+cargo build --target wasm32-wasip1 --release
+mkdir root_fs -p
+echo "hello world">root_fs/input.txt
+
+# Allow all reads to file system
+bls-runtime --allow-read --dir=root_fs::/ target/wasm32-wasip1/release/hello-world.wasm
+
+# Allow all read input.txt output.txt only to file system
+bls-runtime --allow-read=input.txt,output.txt --dir=root_fs::/ target/wasm32-wasip1/release/hello-world.wasm
+```
+
+![alt text](images/file_read.jpg)
+
+
+Definition:`--allow-write[=<PATH>...]`
+```bash
+git clone -b permssions/write https://github.com/blocklessnetwork/template-rust-wasi.git
+cd template-rust-wasi
+cargo build --target wasm32-wasip1 --release
+mkdir root_fs -p
+
+# Allow all writes to file system
+bls-runtime --allow-write --dir=root_fs::/ target/wasm32-wasip1/release/hello-world.wasm
+
+# Allow  write files to /
+bls-runtime --allow-write=/ --dir=root_fs::/ target/wasm32-wasip1/release/hello-world.wasm
+
+cat root_fs/output.txt
+```
