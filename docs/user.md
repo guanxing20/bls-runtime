@@ -139,6 +139,19 @@ Users can also explicitly disallow access to specific resources by using the `--
 
 `--allow-all` flag that grants all permissions to wasm app
 
+```bash
+git clone -b permssions/read https://github.com/blocklessnetwork/template-rust-wasi.git
+cd template-rust-wasi
+cargo build --target wasm32-wasip1 --release
+mkdir root_fs -p
+echo "hello world">root_fs/input.txt
+
+bls-runtime --allow-all --dir=root_fs::/ target/wasm32-wasip1/release/hello-world.wasm
+```
+
+
+![alt text](images/allow-all.jpg)
+
 #### File system access 
 
 The wasm app can't access read and write arbitrary files on the file system, even you map the host dir to wasm app use option `--dir` This includes listing the contents of directories.
@@ -179,3 +192,26 @@ bls-runtime --allow-write=/ --dir=root_fs::/ target/wasm32-wasip1/release/hello-
 
 cat root_fs/output.txt
 ```
+
+
+### Network access
+Execute wasm app can not make network requests. Network access is granted using the `--allow-net` option. This option can be specified with a list of IP addresses or hostnames to allow access to specific network addresses.
+
+Definition: `--allow-net[=<IP_OR_HOSTNAME>...]`
+
+Definition:`--allow-net[=<PATH>...]`
+```bash
+git clone -b permssions/http https://github.com/blocklessnetwork/template-rust-wasi.git
+cd template-rust-wasi
+cargo build --target wasm32-wasip1 --release
+mkdir root_fs -p
+
+# Allow network access
+bls-runtime --allow-net --dir=root_fs::/ target/wasm32-wasip1/release/hello-world.wasm
+
+# Allow network access to httpbin.org
+bls-runtime --allow-net=httpbin.org target/wasm32-wasip1/release/hello-world.wasm
+
+cat root_fs/output.txt
+```
+
