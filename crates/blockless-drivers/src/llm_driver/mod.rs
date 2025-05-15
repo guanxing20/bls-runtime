@@ -288,6 +288,7 @@ mod tests {
         "#;
         let initial_options = LlmOptions {
             system_message: Some(system_message.to_string()),
+            tools_sse_urls: None,
             temperature: Some(0.7),
             top_p: Some(0.9),
         };
@@ -314,6 +315,7 @@ mod tests {
         // Update options
         let updated_options = LlmOptions {
             system_message: Some("You are now a mathematics tutor.".to_string()),
+            tools_sse_urls: None,
             temperature: Some(0.5),
             top_p: Some(0.95),
         };
@@ -327,6 +329,46 @@ mod tests {
 
         // Clean up
         tracing::info!("Cleaning up...");
+        llm_close(handle).await.unwrap();
+    }
+
+    #[tokio::test]
+    #[ignore = "requires running MCP server and downloading large LLM model"]
+    async fn test_llm_driver_custom_model_mcp() {
+        let _ = FmtSubscriber::builder()
+            .with_max_level(tracing::Level::DEBUG)
+            .with_test_writer()
+            .try_init();
+
+        // Set model and verify
+        tracing::info!("Setting up model...");
+        let handle = llm_set_model("https://huggingface.co/Mozilla/Meta-Llama-3.1-8B-Instruct-llamafile/resolve/main/Meta-Llama-3.1-8B-Instruct.Q6_K.llamafile").await.unwrap();
+        let model = llm_get_model(handle).await.unwrap();
+        assert_eq!(
+            model,
+            "https://huggingface.co/Mozilla/Meta-Llama-3.1-8B-Instruct-llamafile/resolve/main/Meta-Llama-3.1-8B-Instruct.Q6_K.llamafile"
+        );
+
+        // Set options and verify with MCP tools
+        let initial_options = LlmOptions {
+            tools_sse_urls: Some(vec!["http://localhost:3001/sse".into()]),
+            ..Default::default()
+        };
+        let options_bytes = serde_json::to_vec(&initial_options).unwrap();
+        llm_set_options(handle, &options_bytes).await.unwrap();
+
+        let retrieved_options = llm_get_options(handle).await.unwrap();
+        assert_eq!(retrieved_options, initial_options);
+
+        // Try to use MCP server to add numbers
+        let prompt = "Add the following numbers: 1215, 2213";
+        llm_prompt(handle, prompt).await.unwrap();
+        let response = llm_read_response(handle).await.unwrap();
+        tracing::info!("\nQ: {}\nA: {}", prompt, response);
+        assert!(!response.is_empty());
+
+        // Clean up
+        tracing::debug!("Cleaning up...");
         llm_close(handle).await.unwrap();
     }
 }
