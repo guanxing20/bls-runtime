@@ -34,7 +34,7 @@ jobs:
         id: coverage
         run: |
           curl -L https://github.com/mozilla/grcov/releases/download/v0.9.1/grcov-x86_64-unknown-linux-musl.tar.bz2 -o grcov.tar.bz2
-          tar xzvf grcov.tar.bz2
+          tar xjvf grcov.tar.bz2
           ./grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing --ignore "/*" -o coverage.info
           echo "report=`pwd`/coverage.info" >> $GITHUB_OUTPUT
       - name: Coveralls upload
