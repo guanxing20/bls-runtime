@@ -122,7 +122,7 @@ pub enum ProcessFunctionResult {
 ///
 /// This function is stateless and handles the entire function call lifecycle:
 /// 1. Detects if a function call is present in the content by
-/// stripping everything before until opening bracket and everything after until closing bracket
+///    stripping everything before until opening bracket and everything after until closing bracket
 /// 2. Parses the function name and arguments
 /// 3. Executes the function call if valid
 ///
@@ -147,7 +147,7 @@ pub async fn process_function_call(content: &str, tools_map: &ToolsMap) -> Proce
     debug!("Function call content: {}", fn_content);
 
     // Extract function JSON
-    let fn_call: Value = match serde_json::from_str(&fn_content) {
+    let fn_call: Value = match serde_json::from_str(fn_content) {
         Ok(call) => call,
         Err(err) => {
             debug!("failed to parse function call string to JSON: {}", err);
@@ -259,7 +259,7 @@ async fn get_tools_map(tools_sse_urls: &[String]) -> ToolsMap {
                 tool.name.to_string(),
                 ToolInfo {
                     url: url.clone(),
-                    tool: tool,
+                    tool,
                     is_accessible: true,
                 },
             );
