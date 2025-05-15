@@ -21,10 +21,61 @@ sh -c "curl https://raw.githubusercontent.com/blessnetwork/bls-runtime/refs/head
 Try to execute binary
 
 ```bash
-./bls-runtime --help
+bls-runtime --help
 ```
 
-![](images/help.jpg "Command Help")
+```
+Blockless WebAssembly Runtime
+
+Usage:
+
+Arguments:
+  <INPUT>    The input file can be a WASM file, a configuration file, or a CAR file.
+  [ARGS]...  Application arguments will be passed into the app.
+
+Options:
+      --v86                                    V86 model flag when the v86 flag the car file must be v86 configure and image.
+      --debug-info                             Runtime debugging information.
+      --feature-thread                         Enables multi-threading in the runtime. When set, the runtime can spawn threads, allowing concurrent task
+                                               execution for improved performance and scalability.
+      --fs-root-path <FS-ROOT-PATH>            The root directory for the runtime.
+      --dir <HOST_DIR[::GUEST_DIR]>            Grant access to a host directory for a guest. If specified as HOST_DIR, the corresponding directory on the
+                                               host will be made available within the guest.
+      --drivers-root-path <DRIVERS-ROOT-PATH>  The root directory for the runtime's drivers.
+      --runtime-logger <RUNTIME-LOGGER>        The log file for the runtime.
+      --limited-memory <LIMITED-MEMORY>        The runtime's memory is limited, with the default set to infinite.
+      --run-time <RUN-TIME>                    The runtime's time limit, with the default set to infinite.
+      --entry <ENTERY>                         The entry point for the WASM, default is _start.
+      --stdout <STDOUT>                        The app's stdout setting, which can be configured to one of the following values: inherit, null, or a
+                                               specific file name.
+      --stdin <STDIN>                          The app's stdin setting, which can be configured to one of the following values: inherit or a fixed input
+                                               string.
+      --stderr <STDERR>                        The app's stderr setting, which can be configured to one of the following values: inherit, null, or a
+                                               specific file name
+      --limited-fuel <LIMITED-FUEL>            The limited fuel for runtime, default is infine
+      --env <ENV=VAL>                          Application environment variables will be passed into the app.
+      --env-file <ENV_FILE>                    Path to an environment file (.env) to load variables from
+  -O, --opt <OPT=VAL,>                         Optimization and tuning related options for wasm performance
+      --permission <PERMISSION>                The permissions for app
+      --module <MODULE-NAME=MODULE-PATH>       The modules used by app
+      --tcplisten <TCPLISTEN[::LISTENFD]>      Grant access to the given TCP listen socket.
+      --unknown_imports_trap                   Allow the main module to import unknown functions.
+      --cli_exit_with_code                     Enable WASI APIs marked as: @unstable(feature = cli-exit-with-code).
+      --network_error_code                     Enable WASI APIs marked as: @unstable(feature = network-error-code).
+      --max_memory_size <MAX_MEMORY_SIZE>      The max memory size limited.
+      --allow-read [<[PATH[,]]>...]            Allow the app to read permissions.
+      --allow-write [<PATH[,]>...]             Allow the app to write permissions.
+      --allow-net [<PATH[,]>...]               Allow the app to net accessing permissions.
+      --deny-read [<PATH[,]>...]               Deny the app to read permissions.
+      --deny-write [<PATH[,]>...]              Deny the app to write permissions.
+      --deny-net [<URL[,]>...]                 Deny the app to  net accessing permissions.
+      --allow-all                              Allow all permissions.
+      --nn                                     Enable support for WASI neural network imports .
+      --nn-graph <NN_GRAPH>                    Pre-load machine learning graphs (i.e., models) for use by wasi-nn.  Each use of the flag will preload a
+                                               ML model from the host directory using the given model encoding
+  -h, --help                                   Print help
+  -V, --version                                Print version
+```
 
 ## How to build the wasm
 
@@ -88,7 +139,11 @@ If you don't map the required path, running the WASM app will result in a crash.
 ```bash
 bls-runtime target/wasm32-wasip1/release/hello-world.wasm
 ```
-![](images/crash.jpg)
+```
+thread 'main' panicked at src/main.rs:10:10:
+Failed to open file: Custom { kind: Uncategorized, error: "failed to find a pre-opened file descriptor through which \"output.txt\" could be opened" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
 
 
 The correct approach is to run the following command.
