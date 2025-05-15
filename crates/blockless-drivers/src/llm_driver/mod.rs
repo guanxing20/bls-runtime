@@ -1,5 +1,6 @@
 mod handle;
 mod llamafile;
+mod mcp;
 mod models;
 mod provider;
 
@@ -18,6 +19,7 @@ static CONTEXTS: LazyLock<HandleMap<LlmContext<LlamafileProvider>>> =
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LlmOptions {
     pub system_message: Option<String>,
+    pub tools_sse_urls: Option<Vec<String>>,
     pub temperature: Option<f32>,
     pub top_p: Option<f32>,
 }
@@ -28,6 +30,7 @@ pub struct LlmContext<P: LLMProvider> {
     provider: Arc<P>,
     options: LlmOptions,
     messages: Arc<Mutex<Vec<Message>>>,
+    tools_map: Option<Arc<mcp::ToolsMap>>,
 }
 
 impl<P: LLMProvider + Clone> LlmContext<P> {
@@ -42,12 +45,23 @@ impl<P: LLMProvider + Clone> LlmContext<P> {
             provider: Arc::new(provider),
             options: LlmOptions::default(),
             messages: Arc::new(Mutex::new(Vec::new())),
+            tools_map: None,
         })
     }
 
     fn add_message(&mut self, role: Role, content: String) {
         let mut messages = self.messages.lock().unwrap();
         messages.push(Message { role, content });
+    }
+
+    /// Get a reference to the tools map
+    pub fn get_tools_map(&self) -> Option<Arc<mcp::ToolsMap>> {
+        self.tools_map.clone()
+    }
+
+    /// Set the tools map
+    pub fn set_tools_map(&mut self, tools_map: mcp::ToolsMap) {
+        self.tools_map = Some(Arc::new(tools_map));
     }
 }
 
@@ -79,10 +93,8 @@ pub async fn llm_set_options(handle: u32, options: &[u8]) -> Result<(), LlmError
         LlmErrorKind::ModelOptionsNotSet
     })?;
 
-    let system_prompt = parsed_options
-        .system_message
-        .clone()
-        .unwrap_or("You are a helpful assistant.".to_string());
+    // Construct system prompt with tools map
+    let (system_prompt, tools_map) = mcp::construct_system_prompt_with_tools(&parsed_options).await;
 
     // Now update the context after the async work
     CONTEXTS
@@ -99,6 +111,11 @@ pub async fn llm_set_options(handle: u32, options: &[u8]) -> Result<(), LlmError
 
             // Drop the messages guard
             drop(messages);
+
+            // Set tools map if present
+            if let Some(tools_map) = tools_map {
+                ctx.set_tools_map(tools_map);
+            }
 
             // Sync options - required by SDK for verification
             ctx.options = parsed_options;
@@ -126,10 +143,14 @@ pub async fn llm_prompt(handle: u32, prompt: &str) -> Result<(), LlmErrorKind> {
 pub async fn llm_read_response(handle: u32) -> Result<String, LlmErrorKind> {
     // Use a block to ensure the lock is dropped before any async calls
     // MutexGuard dropped after the block
-    let (provider, messages) = {
+    let (provider, messages, tools_map) = {
         let ctx_arc = CONTEXTS.get(handle).ok_or(LlmErrorKind::ModelNotSet)?;
         let ctx = ctx_arc.lock().unwrap();
-        (ctx.provider.clone(), ctx.messages.lock().unwrap().clone())
+        (
+            ctx.provider.clone(),
+            ctx.messages.lock().unwrap().clone(),
+            ctx.get_tools_map(),
+        )
     };
 
     // Perform the async chat operation with the snapshot of data
@@ -145,7 +166,72 @@ pub async fn llm_read_response(handle: u32) -> Result<String, LlmErrorKind> {
         })
         .ok_or(LlmErrorKind::ModelNotSet)?;
 
-    Ok(response.content)
+    // If no tools map, just return the response
+    let Some(tools_map) = tools_map else {
+        return Ok(response.content);
+    };
+
+    // Ensure tools map has at least one accessible tool
+    let accessible_tools = tools_map
+        .iter()
+        .filter(|(_, tool)| tool.is_accessible)
+        .collect::<Vec<_>>();
+    if accessible_tools.is_empty() {
+        return Ok(response.content);
+    }
+
+    tracing::debug!(
+        "Attempting to process LLM response with tools: {}",
+        response.content
+    );
+
+    // Process any function call in the response
+    match mcp::process_function_call(&response.content, &tools_map).await {
+        // No function call, just return the response
+        mcp::ProcessFunctionResult::NoFunctionCall => {
+            tracing::debug!("No function call detected in the response");
+            Ok(response.content)
+        }
+
+        // Function call executed with result
+        mcp::ProcessFunctionResult::FunctionExecuted(result) => {
+            tracing::debug!("Function call executed with result: {}", result);
+
+            // Add the tool response to the context
+            CONTEXTS
+                .with_instance_mut(handle, |ctx| {
+                    ctx.add_message(Role::Tool, result.clone());
+                })
+                .ok_or(LlmErrorKind::ModelNotSet)?;
+
+            // Get updated messages for final response - only get them once
+            let updated_messages = {
+                let ctx_arc = CONTEXTS.get(handle).ok_or(LlmErrorKind::ModelNotSet)?;
+                let ctx = ctx_arc.lock().unwrap();
+                ctx.messages.lock().unwrap().clone()
+            };
+
+            // Get final response after tool call
+            let llm_response = provider.chat(&updated_messages).await.map_err(|err| {
+                tracing::error!("Model completion failed: {:?}", err);
+                LlmErrorKind::ModelCompletionFailed
+            })?;
+
+            // Add the final assistant message to the context
+            CONTEXTS
+                .with_instance_mut(handle, |ctx| {
+                    ctx.add_message(Role::Assistant, llm_response.content.clone());
+                })
+                .ok_or(LlmErrorKind::ModelNotSet)?;
+
+            Ok(llm_response.content)
+        }
+
+        mcp::ProcessFunctionResult::Error(error_message) => {
+            tracing::error!("MCP function call error: {}", error_message);
+            Err(LlmErrorKind::MCPFunctionCallError)
+        }
+    }
 }
 
 pub async fn llm_close(handle: u32) -> Result<(), LlmErrorKind> {
