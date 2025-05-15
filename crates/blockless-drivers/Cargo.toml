@@ -40,6 +40,11 @@ serde_json = "1.0.138"
 serde = "1.0.217"
 tokio = { workspace = true, features = ["process"] }
 tracing = { workspace = true }
+rmcp = { git = "https://github.com/modelcontextprotocol/rust-sdk", rev = "5d92061", features = [
+  "client",
+  "transport-sse",
+] }
+chrono = "0.4"
 
 [dev-dependencies]
 tempdir = { workspace = true }
