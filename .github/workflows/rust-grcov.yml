@@ -30,16 +30,12 @@ jobs:
           CARGO_INCREMENTAL: 0
           LLVM_PROFILE_FILE: "run-%m.profraw"
           RUSTFLAGS: "-Cinstrument-coverage  -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-
-      - name: Pre-installing grcov
-        uses: actions-rs/install@v0.1
-        with:
-          crate: grcov
-          use-tool-cache: true
       - name: grcov 
         id: coverage
         run: |
-          grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing --ignore "/*" -o coverage.info
+          curl -L https://github.com/mozilla/grcov/releases/download/v0.9.1/grcov-x86_64-unknown-linux-musl.tar.bz2 -o grcov.tar.bz2
+          tar xjvf grcov.tar.bz2
+          ./grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing --ignore "/*" -o coverage.info
           echo "report=`pwd`/coverage.info" >> $GITHUB_OUTPUT
       - name: Coveralls upload
         uses: coverallsapp/github-action@master
