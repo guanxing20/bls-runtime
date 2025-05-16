@@ -214,4 +214,5 @@ pub enum LlmErrorKind {
     ModelShutdownFailed,       // 6
     Utf8Error,                 // 7
     RuntimeError,              // 8
+    MCPFunctionCallError,      // 9
 }

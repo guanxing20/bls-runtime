@@ -32,6 +32,7 @@ impl From<LlmErrorKind> for types::LlmError {
             LlmErrorKind::ModelShutdownFailed => LlmError::ModelShutdownFailed,
             LlmErrorKind::Utf8Error => LlmError::Utf8Error,
             LlmErrorKind::RuntimeError => LlmError::RuntimeError,
+            LlmErrorKind::MCPFunctionCallError => LlmError::McpFunctionCallError,
         }
     }
 }
