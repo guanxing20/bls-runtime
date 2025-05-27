@@ -346,13 +346,14 @@ mod tests {
     static INIT: Once = Once::new();
     fn init_tracing() {
         INIT.call_once(|| {
-            tracing_subscriber::registry()
+            // Try to initialize the global subscriber, but ignore errors if it's already set
+            let _ = tracing_subscriber::registry()
                 .with(
                     tracing_subscriber::EnvFilter::try_from_default_env()
                         .unwrap_or_else(|_| "debug".into()),
                 )
                 .with(tracing_subscriber::fmt::layer())
-                .init();
+                .try_init();
         });
     }
 
